@@ -1,76 +1,76 @@
 # OpenOps Toolkit
 
-**Open Source DevOps Toolkit for Small Teams**
+**Toolkit DevOps Open Source untuk Tim Kecil**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/ujgsp/OpenOpsToolkit.svg)](https://github.com/ujgsp/OpenOpsToolkit/stargazers)
 [![GitHub Issues](https://img.shields.io/github/issues/ujgsp/OpenOpsToolkit.svg)](https://github.com/ujgsp/OpenOpsToolkit/issues)
 
-> Deploy Laravel, setup monitoring, configure automation, and manage your VPS — all from one toolkit.
+> Deploy Laravel, setup monitoring, konfigurasi automation, dan kelola VPS Anda — semua dari satu toolkit.
 
 ---
 
-## What Can I Do With This?
+## Apa yang Bisa Saya Lakukan Dengan Ini?
 
-✅ **Deploy Laravel** to VPS in minutes (Ubuntu 22.04 + Nginx + PHP 8.2 + MySQL)
+✅ **Deploy Laravel** ke VPS dalam hitungan menit (Ubuntu 22.04 + Nginx + PHP 8.2 + MySQL)
 
-✅ **Deploy WordPress** with one command
+✅ **Deploy WordPress** dengan satu perintah
 
-✅ **Setup n8n** workflow automation server
+✅ **Setup n8n** server workflow automation
 
-✅ **Install Docker** on any Ubuntu server
+✅ **Install Docker** di server Ubuntu mana pun
 
-✅ **Setup OpenVPN** for secure remote access
+✅ **Setup OpenVPN** untuk akses remote yang aman
 
-✅ **Deploy Vaultwarden** as self-hosted password manager
+✅ **Deploy Vaultwarden** sebagai password manager self-hosted
 
-✅ **Receive Telegram Alerts** when SSL expires, domain expires, or website goes down
+✅ **Terima Alert Telegram** saat SSL expired, domain expired, atau website down
 
-✅ **Setup Monitoring** with Uptime Kuma, Grafana, and Prometheus
+✅ **Setup Monitoring** dengan Uptime Kuma, Grafana, dan Prometheus
 
-✅ **Analyze Incidents** with AI-powered log analysis
+✅ **Analisis Insiden** dengan analisis log berbasis AI
 
-✅ **Manage Multiple Servers** from a single control machine
-
----
-
-## Who Is This For?
-
-| Who | Why |
-|-----|-----|
-| 👨‍💻 **Laravel Developer** | Deploy to VPS without DevOps knowledge |
-| 🌐 **WordPress Developer** | Setup hosting for clients in minutes |
-| 💼 **Freelancer** | Manage multiple client servers efficiently |
-| 🏢 **Small Software House** | Standardize deployment process |
-| 🏛️ **Government IT Team** | Follow best practices with clear documentation |
-| 🚀 **Startup** | Start small, scale later |
+✅ **Kelola Banyak Server** dari satu mesin kontrol
 
 ---
 
-## Why OpenOps Toolkit?
+## Untuk Siapa Ini?
 
-Enterprise DevOps tools are often:
-- ❌ Too complex for small teams
-- ❌ Require expensive infrastructure
-- ❌ Steep learning curve
-- ❌ Overkill for 1-5 servers
-
-**OpenOps Toolkit** focuses on:
-- ✅ **VPS murah** (starts from $5/month)
-- ✅ **Simple deployment** (one command)
-- ✅ **Clear documentation** (step-by-step guides)
-- ✅ **Practical automation** (real-world workflows)
-- ✅ **Small team friendly** (1-10 people)
+| Siapa | Mengapa |
+|-------|---------|
+| 👨‍💻 **Laravel Developer** | Deploy ke VPS tanpa pengetahuan DevOps |
+| 🌐 **WordPress Developer** | Setup hosting untuk klien dalam hitungan menit |
+| 💼 **Freelancer** | Kelola banyak server klien secara efisien |
+| 🏢 **Software House Kecil** | Standarisasi proses deployment |
+| 🏛️ **Tim IT Pemerintah** | Ikuti best practices dengan dokumentasi jelas |
+| 🚀 **Startup** | Mulai dari kecil, scale nanti |
 
 ---
 
-## Quick Start
+## Mengapa OpenOps Toolkit?
 
-### Prerequisites
+Tool DevOps enterprise sering kali:
+- ❌ Terlalu kompleks untuk tim kecil
+- ❌ Membutuhkan infrastruktur mahal
+- ❌ Learning curve tinggi
+- ❌ Overkill untuk 1-5 server
+
+**OpenOps Toolkit** fokus pada:
+- ✅ **VPS murah** (mulai dari $5/bulan)
+- ✅ **Deployment sederhana** (satu perintah)
+- ✅ **Dokumentasi jelas** (panduan langkah demi langkah)
+- ✅ **Automation praktis** (workflow dunia nyata)
+- ✅ **Ramah tim kecil** (1-10 orang)
+
+---
+
+## Mulai Cepat
+
+### Prasyarat
 
 - Ubuntu Server 22.04 LTS (1 VPS)
-- SSH access to your server
-- Git installed on your computer
+- Akses SSH ke server Anda
+- Git terinstall di komputer Anda
 
 ### 1. Clone Repository
 
@@ -79,17 +79,17 @@ git clone https://github.com/ujgsp/OpenOpsToolkit.git
 cd OpenOpsToolkit
 ```
 
-### 2. Deploy Laravel (Example)
+### 2. Deploy Laravel (Contoh)
 
 ```bash
-# Edit inventory with your server IP
+# Edit inventory dengan IP server Anda
 nano ansible/inventories/production/hosts.yml
 
 # Deploy Laravel
 ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
 ```
 
-**Result**: Laravel app running at `http://your-server-ip`
+**Hasil**: Aplikasi Laravel berjalan di `http://ip-server-anda`
 
 ### 3. Setup Monitoring
 
@@ -99,231 +99,262 @@ cd monitoring
 docker-compose up -d
 ```
 
-**Result**: 
-- Uptime Kuma at `http://your-server-ip:3001`
-- Grafana at `http://your-server-ip:3000`
-- Prometheus at `http://your-server-ip:9090`
+**Hasil**: 
+- Uptime Kuma di `http://ip-server-anda:3001`
+- Grafana di `http://ip-server-anda:3000`
+- Prometheus di `http://ip-server-anda:9090`
 
-### 4. Import n8n Workflow
+### 4. Import Workflow n8n
 
-1. Open n8n dashboard
-2. Click **Import from File**
-3. Select `n8n/workflows/monitoring/ssl-expired-alert.json`
-4. Configure Telegram bot token
-5. Activate workflow
+1. Buka dashboard n8n
+2. Klik **Import from File**
+3. Pilih `n8n/workflows/monitoring/ssl-expired-alert.json`
+4. Konfigurasi token bot Telegram
+5. Aktifkan workflow
 
-**Result**: Receive Telegram alerts when SSL certificate expires
+**Hasil**: Terima alert Telegram saat sertifikat SSL expired
+
+> 📖 **Panduan lengkap**: [Deploy Laravel ke VPS](docs/use-cases/deploy-laravel-vps.md) | [Setup Monitoring](docs/use-cases/setup-monitoring-stack.md) | [Setup n8n](docs/use-cases/setup-n8n-server.md) | [Setup OpenVPN](docs/use-cases/setup-openvpn-server.md)
 
 ---
 
-## Screenshots
+## Screenshot
 
-### Laravel Deployment
+### Deploy Laravel
 
-![Laravel Deployment](assets/screenshots/laravel-deploy-dashboard.png)
+![Deploy Laravel](assets/screenshots/laravel-deploy-dashboard.png)
 
-*Deploy Laravel to VPS with one command*
+*Deploy Laravel ke VPS dengan satu perintah*
 
-### Monitoring Dashboard
+### Dashboard Monitoring
 
 ![Uptime Kuma](assets/screenshots/uptime-kuma.png)
 
-*Monitor all your websites in one place*
+*Monitor semua website Anda di satu tempat*
 
-### Telegram Notification
+### Notifikasi Telegram
 
-![Telegram Alert](assets/screenshots/telegram-alert.png)
+![Alert Telegram](assets/screenshots/telegram-alert.png)
 
-*Get instant alerts when something goes wrong*
+*Dapatkan alert instan saat ada masalah*
 
-### n8n Workflow
+### Workflow n8n
 
-![n8n Workflow](assets/screenshots/n8n-workflow.png)
+![Workflow n8n](assets/screenshots/n8n-workflow.png)
 
-*Automate operational tasks with visual workflows*
+*Otomasi tugas operasional dengan visual workflow*
 
-> 📸 **TODO**: Add actual screenshots before v1.0.0 release
+> 📸 **TODO**: Tambahkan screenshot sebenarnya sebelum rilis v1.0.0
 
 ---
 
-## Available Modules
+## Modul yang Tersedia
 
 ### Ansible Roles
 
-| Role | Description | Requirements |
-|------|-------------|--------------|
-| `laravel` | Deploy Laravel app | Ubuntu 22.04, Nginx, PHP 8.2, MySQL |
+| Role | Deskripsi | Kebutuhan |
+|------|-----------|-----------|
+| `laravel` | Deploy aplikasi Laravel | Ubuntu 22.04, Nginx, PHP 8.2, MySQL |
 | `wordpress` | Deploy WordPress | Ubuntu 22.04, Nginx, PHP 8.2, MySQL |
-| `n8n` | Deploy n8n automation | Ubuntu 22.04, Docker |
+| `n8n` | Deploy automation n8n | Ubuntu 22.04, Docker |
 | `docker` | Install Docker CE | Ubuntu 22.04 |
-| `openvpn` | Setup OpenVPN server | Ubuntu 22.04 |
+| `openvpn` | Setup server OpenVPN | Ubuntu 22.04 |
 | `vaultwarden` | Deploy Vaultwarden | Ubuntu 22.04, Docker |
 
-### n8n Workflows
+### Workflow n8n
 
-| Workflow | Purpose | Schedule |
-|----------|---------|----------|
-| SSL Expired Alert | Monitor SSL certificates | Every 12 hours |
-| Domain Expired Alert | Monitor domain expiry | Every 24 hours |
-| Website Down Alert | Monitor website availability | Every 5 minutes |
+| Workflow | Tujuan | Jadwal |
+|----------|--------|--------|
+| SSL Expired Alert | Monitor sertifikat SSL | Setiap 12 jam |
+| Domain Expired Alert | Monitor expiry domain | Setiap 24 jam |
+| Website Down Alert | Monitor ketersediaan website | Setiap 5 menit |
 
 ### Monitoring Stack
 
-| Tool | Purpose | Port |
-|------|---------|------|
-| Uptime Kuma | Website monitoring | 3001 |
-| Grafana | Visualization | 3000 |
-| Prometheus | Metrics collection | 9090 |
+| Tool | Tujuan | Port |
+|------|--------|------|
+| Uptime Kuma | Monitoring website | 3001 |
+| Grafana | Visualisasi | 3000 |
+| Prometheus | Pengumpulan metrik | 9090 |
 
 ---
 
-## Example Use Cases
+## Contoh Kasus Penggunaan
 
-### Use Case 1: Deploy Laravel for Client
+### Kasus 1: Deploy Laravel untuk Klien
 
-**Scenario**: Freelancer needs to deploy Laravel app for client.
+**Skenario**: Freelancer perlu deploy aplikasi Laravel untuk klien.
 
 ```bash
-# 1. Get client's VPS credentials
+# 1. Dapatkan kredensial VPS klien
 # 2. Update inventory
 nano ansible/inventories/production/hosts.yml
 
 # 3. Deploy
 ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
 
-# 4. Done! Client's app is live
+# 4. Selesai! Aplikasi klien sudah live
 ```
 
-**Time**: 15 minutes
+**Waktu**: 15 menit
+
+📖 **Panduan lengkap**: [Deploy Laravel ke VPS](docs/use-cases/deploy-laravel-vps.md)
 
 ---
 
-### Use Case 2: Setup Monitoring for Multiple Sites
+### Kasus 2: Setup Monitoring untuk Banyak Situs
 
-**Scenario**: Software house needs to monitor 10 client websites.
+**Skenario**: Software house perlu monitor 10 website klien.
 
 ```bash
 # 1. Deploy monitoring stack
 cd monitoring && docker-compose up -d
 
-# 2. Import SSL alert workflow to n8n
-# 3. Add all domains to monitor
-# 4. Configure Telegram notifications
+# 2. Import workflow alert SSL ke n8n
+# 3. Tambahkan semua domain yang akan dimonitor
+# 4. Konfigurasi notifikasi Telegram
 ```
 
-**Result**: Get alerts before SSL/domain expires
+**Hasil**: Dapat alert sebelum SSL/domain expired
+
+📖 **Panduan lengkap**: [Setup Monitoring Stack](docs/use-cases/setup-monitoring-stack.md)
 
 ---
 
-### Use Case 3: Setup VPN for Remote Team
+### Kasus 3: Setup VPN untuk Tim Remote
 
-**Scenario**: Government IT team needs secure remote access.
+**Skenario**: Tim IT pemerintah butuh akses remote yang aman.
 
 ```bash
 # 1. Deploy OpenVPN
 ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml --limit vpn_servers
 
-# 2. Generate client configs
-# 3. Distribute to team members
+# 2. Generate konfigurasi klien
+# 3. Distribusikan ke anggota tim
 ```
 
-**Result**: Team can securely access internal systems
+**Hasil**: Tim dapat mengakses sistem internal dengan aman
+
+📖 **Panduan lengkap**: [Setup OpenVPN Server](docs/use-cases/setup-openvpn-server.md)
+
+---
+
+## Dokumentasi Lengkap
+
+### Panduan Penggunaan
+- [Deploy Laravel ke VPS](docs/use-cases/deploy-laravel-vps.md)
+- [Setup Monitoring Stack](docs/use-cases/setup-monitoring-stack.md)
+- [Setup n8n Server](docs/use-cases/setup-n8n-server.md)
+- [Setup OpenVPN Server](docs/use-cases/setup-openvpn-server.md)
+
+### Contoh Cepat
+- [Deploy Laravel](examples/deploy-laravel/README.md)
+- [Setup Monitoring](examples/setup-monitoring/README.md)
+- [Setup n8n](examples/setup-n8n/README.md)
+- [Alert Telegram](examples/telegram-alert/README.md)
+
+### Dokumentasi Teknis
+- [Ansible Roles](ansible/roles/)
+- [n8n Workflows](n8n/workflows/)
+- [Monitoring Stack](monitoring/)
+- [AI Ops](docs/aiops/)
+- [Multi-Server](docs/multi-server/)
 
 ---
 
 ## Roadmap
 
-### ✅ v0.1.0 — MVP (Complete)
-- [x] Laravel deployment
-- [x] WordPress deployment
-- [x] n8n deployment
-- [x] Docker installation
-- [x] OpenVPN setup
-- [x] Vaultwarden deployment
+### ✅ v0.1.0 — MVP (Selesai)
+- [x] Deploy Laravel
+- [x] Deploy WordPress
+- [x] Deploy n8n
+- [x] Install Docker
+- [x] Setup OpenVPN
+- [x] Deploy Vaultwarden
 
-### ✅ v0.2.0 — Monitoring (Complete)
-- [x] Uptime Kuma documentation
-- [x] Grafana setup
-- [x] Prometheus configuration
+### ✅ v0.2.0 — Monitoring (Selesai)
+- [x] Dokumentasi Uptime Kuma
+- [x] Setup Grafana
+- [x] Konfigurasi Prometheus
 
-### ✅ v0.3.0 — AI Ops (Complete)
-- [x] Incident analysis prompts
-- [x] GitHub issue summarization
+### ✅ v0.3.0 — AI Ops (Selesai)
+- [x] Prompt analisis insiden
+- [x] Ringkasan issue GitHub
 
-### ✅ v0.4.0 — Multi-Server (Complete)
-- [x] Multi-server architecture
-- [x] Centralized inventory
-- [x] Deployment orchestration
+### ✅ v0.4.0 — Multi-Server (Selesai)
+- [x] Arsitektur multi-server
+- [x] Inventaris terpusat
+- [x] Orkestrasi deployment
 
-### 🚧 v1.0.0 — Stable Release (In Progress)
-- [ ] Integration testing
-- [ ] Video tutorials
-- [ ] Community contributions
-- [ ] Performance benchmarks
+### 🚧 v1.0.0 — Rilis Stabil (Dalam Proses)
+- [ ] Testing integrasi
+- [ ] Tutorial video
+- [ ] Kontribusi komunitas
+- [ ] Benchmark performa
 
 ---
 
-## Project Structure
+## Struktur Proyek
 
 ```
 OpenOpsToolkit/
-├── ansible/              # Infrastructure automation
+├── ansible/              # Otomasi infrastruktur
 │   ├── roles/            # 6 Ansible roles
-│   ├── playbooks/        # Deployment playbooks
-│   └── inventories/      # Server inventory
-├── n8n/                  # Workflow automation
+│   ├── playbooks/        # Playbook deployment
+│   └── inventories/      # Inventaris server
+├── n8n/                  # Otomasi workflow
 ├── monitoring/           # Monitoring stack
-├── docs/                 # Documentation
-├── examples/             # Quick start examples
-└── scripts/              # Utility scripts
+├── docs/                 # Dokumentasi
+├── examples/             # Contoh mulai cepat
+└── scripts/              # Script utilitas
 ```
 
 ---
 
-## Contributing
+## Berkontribusi
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+Kami menyambut kontribusi! Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk detailnya.
 
-### How to Contribute
+### Cara Berkontribusi
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+1. Fork repository
+2. Buat branch fitur
+3. Buat perubahan Anda
+4. Submit pull request
 
 ### Good First Issues
 
-Look for issues labeled [`good first issue`](https://github.com/ujgsp/OpenOpsToolkit/labels/good%20first%20issue).
+Cari issue dengan label [`good first issue`](https://github.com/ujgsp/OpenOpsToolkit/labels/good%20first%20issue).
 
 ---
 
-## Security
+## Keamanan
 
-For security concerns, see [SECURITY.md](SECURITY.md).
-
----
-
-## Support
-
-- 📖 [Documentation](docs/)
-- 🐛 [Report Bug](https://github.com/ujgsp/OpenOpsToolkit/issues/new?template=bug_report.md)
-- 💡 [Request Feature](https://github.com/ujgsp/OpenOpsToolkit/issues/new?template=feature_request.md)
-- 💬 [Discussions](https://github.com/ujgsp/OpenOpsToolkit/discussions)
+Untuk masalah keamanan, lihat [SECURITY.md](SECURITY.md).
 
 ---
 
-## License
+## Dukungan
 
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## Acknowledgments
-
-- Inspired by [Ansible Galaxy](https://galaxy.ansible.com/)
-- Inspired by [Awesome n8n](https://github.com/n8n-io/awesome-n8n)
-- Built for Indonesian developer community
+- 📖 [Dokumentasi](docs/)
+- 🐛 [Laporkan Bug](https://github.com/ujgsp/OpenOpsToolkit/issues/new?template=bug_report.md)
+- 💡 [Minta Fitur](https://github.com/ujgsp/OpenOpsToolkit/issues/new?template=feature_request.md)
+- 💬 [Diskusi](https://github.com/ujgsp/OpenOpsToolkit/discussions)
 
 ---
 
-**Made with ❤️ for developers who manage their own servers**
+## Lisensi
+
+MIT License — lihat [LICENSE](LICENSE) untuk detailnya.
+
+---
+
+## Penghargaan
+
+- Terinspirasi dari [Ansible Galaxy](https://galaxy.ansible.com/)
+- Terinspirasi dari [Awesome n8n](https://github.com/n8n-io/awesome-n8n)
+- Dibangun untuk komunitas developer Indonesia
+
+---
+
+**Dibuat dengan ❤️ untuk developer yang mengelola server sendiri**
