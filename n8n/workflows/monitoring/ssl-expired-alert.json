@@ -1,0 +1,142 @@
+{
+  "name": "SSL Certificate Expiry Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.domain }}",
+        "options": {}
+      },
+      "id": "http-request",
+      "name": "Check SSL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const domains = ['example.com', 'api.example.com'];\nconst results = [];\n\nfor (const domain of domains) {\n  try {\n    const response = await this.helpers.httpRequest({\n      url: `https://crt.sh/?q=${domain}&output=json`,\n      method: 'GET',\n      returnFullResponse: true\n    });\n    \n    const certs = JSON.parse(response.body);\n    if (certs && certs.length > 0) {\n      const latestCert = certs[0];\n      const expiryDate = new Date(latestCert.not_after);\n      const daysUntilExpiry = Math.floor((expiryDate - new Date()) / (1000 * 60 * 60 * 24));\n      \n      results.push({\n        domain: domain,\n        expiryDate: expiryDate.toISOString(),\n        daysUntilExpiry: daysUntilExpiry,\n        issuer: latestCert.issuer_name,\n        needsAlert: daysUntilExpiry <= 30\n      });\n    }\n  } catch (error) {\n    results.push({\n      domain: domain,\n      error: error.message,\n      needsAlert: true\n    });\n  }\n}\n\nreturn results.map(item => ({ json: item }));"
+      },
+      "id": "check-certificates",
+      "name": "Check Certificates",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.needsAlert }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "filter-alerts",
+      "name": "Filter Alerts",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "=🔒 SSL Certificate Alert\n\nDomain: {{ $json.domain }}\nExpiry Date: {{ $json.expiryDate }}\nDays Until Expiry: {{ $json.daysUntilExpiry }}\nIssuer: {{ $json.issuer }}\n\n{% if $json.daysUntilExpiry <= 7 %}⚠️ URGENT: Certificate expires in less than 7 days!{% elif $json.daysUntilExpiry <= 30 %}⚠️ WARNING: Certificate expires in less than 30 days{% endif %}\n\nPlease renew the certificate immediately.",
+        "additionalFields": {}
+      },
+      "id": "telegram",
+      "name": "Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-credentials",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Summary of all checks\nconst items = $input.all();\nconst summary = {\n  total: items.length,\n  alerts: items.filter(i => i.json.needsAlert).length,\n  safe: items.filter(i => !i.json.needsAlert).length\n};\n\nreturn [{ json: summary }];"
+      },
+      "id": "summary",
+      "name": "Create Summary",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Certificates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Certificates": {
+      "main": [
+        [
+          {
+            "node": "Filter Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Alerts": {
+      "main": [
+        [
+          {
+            "node": "Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Alert": {
+      "main": [
+        [
+          {
+            "node": "Create Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "ssl-monitor"
+  }
+}

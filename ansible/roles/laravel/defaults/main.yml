@@ -1,0 +1,63 @@
+---
+# Laravel Role - Default Variables
+
+# Application
+app_name: "laravel-app"
+app_repo: "https://github.com/example/laravel-app.git"
+app_branch: "main"
+app_env: "production"
+app_url: "http://{{ domain }}"
+
+# PHP
+php_version: "8.2"
+php_memory_limit: "256M"
+php_upload_max_filesize: "64M"
+
+# Nginx
+nginx_worker_processes: "auto"
+nginx_client_max_body_size: "64M"
+
+# Database
+db_name: "laravel_db"
+db_user: "laravel"
+db_password: "change_me_in_production"
+
+# Domain
+domain: "example.com"
+
+# SSL
+ssl_enabled: false
+ssl_email: "admin@example.com"
+
+# Cache
+cache_driver: "file"
+session_driver: "file"
+queue_driver: "sync"
+
+# Redis (optional)
+redis_host: "127.0.0.1"
+redis_port: "6379"
+redis_password: ""
+
+# Mail
+mail_driver: "smtp"
+mail_host: "smtp.mailtrap.io"
+mail_port: "2525"
+mail_username: ""
+mail_password: ""
+mail_encryption: "tls"
+mail_from_address: "noreply@example.com"
+mail_from_name: "{{ app_name }}"
+
+# Logging
+log_channel: "stack"
+log_level: "debug"
+
+# Session
+session_lifetime: "120"
+
+# Broadcasting
+broadcast_driver: "log"
+
+# Filesystem
+filesystem_driver: "local"

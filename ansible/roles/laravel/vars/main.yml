@@ -1,0 +1,62 @@
+---
+# Laravel Role - Variables
+
+# System packages
+system_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - software-properties-common
+  - unzip
+  - git
+  - supervisor
+  - ufw
+
+# PHP packages
+php_packages:
+  - "php{{ php_version }}-fpm"
+  - "php{{ php_version }}-mysql"
+  - "php{{ php_version }}-xml"
+  - "php{{ php_version }}-mbstring"
+  - "php{{ php_version }}-curl"
+  - "php{{ php_version }}-zip"
+  - "php{{ php_version }}-gd"
+  - "php{{ php_version }}-bcmath"
+  - "php{{ php_version }}-intl"
+  - "php{{ php_version }}-readline"
+  - "php{{ php_version }}-opcache"
+  - "php{{ php_version }}-redis"
+
+# Nginx configuration
+nginx_config_path: "/etc/nginx/sites-available/{{ app_name }}"
+nginx_enabled_path: "/etc/nginx/sites-enabled/{{ app_name }}"
+
+# PHP-FPM configuration
+php_fpm_config_path: "/etc/php/{{ php_version }}/fpm/pool.d/{{ app_name }}.conf"
+php_fpm_socket: "/var/run/php/php{{ php_version }}-fpm-{{ app_name }}.sock"
+
+# Application paths
+app_root: "/var/www/{{ app_name }}"
+app_public: "{{ app_root }}/public"
+app_storage: "{{ app_root }}/storage"
+app_bootstrap_cache: "{{ app_root }}/bootstrap/cache"
+
+# Laravel artisan commands
+artisan_commands:
+  - "config:cache"
+  - "route:cache"
+  - "view:cache"
+  - "event:cache"
+
+# Firewall ports
+firewall_ports:
+  - '22'
+  - '80'
+  - '443'
+
+# SSL configuration
+certbot_packages:
+  - certbot
+  - python3-certbot-nginx

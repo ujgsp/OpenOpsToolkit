@@ -1,0 +1,276 @@
+---
+# Laravel Role - Main Tasks
+# Deploy Laravel application on Ubuntu 22.04
+
+- name: Include variables
+  include_vars: main.yml
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install system dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+      - unzip
+      - git
+      - supervisor
+    state: present
+
+- name: Add PHP repository
+  apt_repository:
+    repo: "ppa:ondrej/php"
+    update_cache: yes
+
+- name: Install PHP {{ php_version }}
+  apt:
+    name:
+      - "php{{ php_version }}-fpm"
+      - "php{{ php_version }}-mysql"
+      - "php{{ php_version }}-xml"
+      - "php{{ php_version }}-mbstring"
+      - "php{{ php_version }}-curl"
+      - "php{{ php_version }}-zip"
+      - "php{{ php_version }}-gd"
+      - "php{{ php_version }}-bcmath"
+      - "php{{ php_version }}-intl"
+      - "php{{ php_version }}-readline"
+      - "php{{ php_version }}-opcache"
+      - "php{{ php_version }}-redis"
+    state: present
+
+- name: Configure PHP-FPM
+  template:
+    src: php-fpm.conf.j2
+    dest: "/etc/php/{{ php_version }}/fpm/pool.d/{{ app_name }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart php-fpm
+
+- name: Configure PHP settings
+  lineinfile:
+    path: "/etc/php/{{ php_version }}/fpm/php.ini"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^memory_limit', line: "memory_limit = {{ php_memory_limit }}" }
+    - { regexp: '^upload_max_filesize', line: "upload_max_filesize = {{ php_upload_max_filesize }}" }
+    - { regexp: '^post_max_size', line: "post_max_size = {{ php_upload_max_filesize }}" }
+    - { regexp: '^max_execution_time', line: "max_execution_time = 300" }
+  notify: restart php-fpm
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Configure Nginx
+  template:
+    src: nginx.conf.j2
+    dest: "/etc/nginx/sites-available/{{ app_name }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+
+- name: Enable Nginx site
+  file:
+    src: "/etc/nginx/sites-available/{{ app_name }}"
+    dest: "/etc/nginx/sites-enabled/{{ app_name }}"
+    state: link
+  notify: restart nginx
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+
+- name: Install MySQL
+  apt:
+    name:
+      - mysql-server
+      - mysql-client
+      - python3-mysqldb
+    state: present
+
+- name: Start and enable MySQL
+  systemd:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Create MySQL database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Install Composer
+  shell: |
+    curl -sS https://getcomposer.org/installer | php
+    mv composer.phar /usr/local/bin/composer
+    chmod +x /usr/local/bin/composer
+  args:
+    creates: /usr/local/bin/composer
+
+- name: Create application directory
+  file:
+    path: "/var/www/{{ app_name }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Clone application repository
+  git:
+    repo: "{{ app_repo }}"
+    dest: "/var/www/{{ app_name }}"
+    version: "{{ app_branch }}"
+    force: yes
+  become: yes
+  become_user: www-data
+
+- name: Install Composer dependencies
+  composer:
+    command: install
+    working_dir: "/var/www/{{ app_name }}"
+    no_dev: yes
+    optimize_autoloader: yes
+  become: yes
+  become_user: www-data
+
+- name: Create .env file
+  template:
+    src: env.j2
+    dest: "/var/www/{{ app_name }}/.env"
+    owner: www-data
+    group: www-data
+    mode: '0640'
+
+- name: Generate application key
+  shell: "cd /var/www/{{ app_name }} && php artisan key:generate"
+  become: yes
+  become_user: www-data
+  when: app_env != "production"
+
+- name: Run database migrations
+  shell: "cd /var/www/{{ app_name }} && php artisan migrate --force"
+  become: yes
+  become_user: www-data
+
+- name: Set storage permissions
+  file:
+    path: "/var/www/{{ app_name }}/storage"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0775'
+    recurse: yes
+
+- name: Set bootstrap/cache permissions
+  file:
+    path: "/var/www/{{ app_name }}/bootstrap/cache"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0775'
+    recurse: yes
+
+- name: Configure Laravel cache
+  shell: "cd /var/www/{{ app_name }} && php artisan config:cache"
+  become: yes
+  become_user: www-data
+
+- name: Configure Laravel routes
+  shell: "cd /var/www/{{ app_name }} && php artisan route:cache"
+  become: yes
+  become_user: www-data
+
+- name: Configure Laravel views
+  shell: "cd /var/www/{{ app_name }} && php artisan view:cache"
+  become: yes
+  become_user: www-data
+
+- name: Start and enable services
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - nginx
+    - "php{{ php_version }}-fpm"
+    - mysql
+
+- name: Configure firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - '22'
+    - '80'
+    - '443'
+
+- name: Enable firewall
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Install Certbot for SSL
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+  when: ssl_enabled | bool
+
+- name: Obtain SSL certificate
+  shell: |
+    certbot --nginx -d {{ domain }} --non-interactive --agree-tos -m {{ ssl_email }}
+  when: ssl_enabled | bool
+
+- name: Configure SSL renewal cron
+  cron:
+    name: "Certbot renewal"
+    minute: "0"
+    hour: "0"
+    job: "certbot renew --quiet"
+    user: root
+  when: ssl_enabled | bool
+
+- name: Display deployment information
+  debug:
+    msg: |
+      Laravel application deployed successfully!
+      
+      Application: {{ app_name }}
+      URL: http{% if ssl_enabled %}s{% endif %}://{{ domain }}
+      Directory: /var/www/{{ app_name }}
+      Database: {{ db_name }}
+      
+      Services:
+      - Nginx: systemctl status nginx
+      - PHP-FPM: systemctl status php{{ php_version }}-fpm
+      - MySQL: systemctl status mysql
+      
+      Logs:
+      - Nginx: /var/log/nginx/
+      - PHP-FPM: /var/log/php{{ php_version }}-fpm.log
+      - Laravel: /var/www/{{ app_name }}/storage/logs/

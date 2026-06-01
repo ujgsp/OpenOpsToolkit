@@ -1,0 +1,27 @@
+---
+# Laravel Role - Handlers
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+
+- name: restart php-fpm
+  systemd:
+    name: "php{{ php_version }}-fpm"
+    state: restarted
+
+- name: restart mysql
+  systemd:
+    name: mysql
+    state: restarted
+
+- name: reload nginx
+  systemd:
+    name: nginx
+    state: reloaded
+
+- name: reload php-fpm
+  systemd:
+    name: "php{{ php_version }}-fpm"
+    state: reloaded

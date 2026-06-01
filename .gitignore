@@ -1,0 +1,76 @@
+# Compiled source
+*.pyc
+*.pyo
+*.class
+*.o
+*.so
+
+# Packages
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.production
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+__pycache__/
+.cache/
+*.cache
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+
+# Secrets
+*.key
+*.pem
+*.cert
+secrets/
+
+# Large files
+*.db
+*.sqlite
+*.sql
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# Python
+venv/
+.venv/
+env/
+
+# Ansible
+*.retry
+
+# Backup files
+*.bak
+*.backup
+*.orig

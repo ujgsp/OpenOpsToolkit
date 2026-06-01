@@ -1,0 +1,70 @@
+# Example Inventory File
+# Part of OpenOps Toolkit
+
+# Production servers
+webservers:
+  hosts:
+    server1:
+      ansible_host: 192.168.1.10
+      ansible_user: ubuntu
+      ansible_ssh_private_key_file: ~/.ssh/id_rsa
+      
+    server2:
+      ansible_host: 192.168.1.11
+      ansible_user: ubuntu
+      ansible_ssh_private_key_file: ~/.ssh/id_rsa
+  
+  vars:
+    # Application settings
+    laravel_app_name: "my-laravel-app"
+    laravel_app_repo: "https://github.com/username/repository.git"
+    laravel_app_branch: "main"
+    laravel_app_env: "production"
+    
+    # Domain settings
+    laravel_domain: "myapp.example.com"
+    laravel_ssl_enabled: true
+    laravel_ssl_email: "admin@example.com"
+    
+    # Database settings
+    laravel_db_name: "laravel_production"
+    laravel_db_user: "laravel"
+    laravel_db_password: "{{ vault_db_password }}"  # Use Ansible Vault
+    
+    # PHP settings
+    php_version: "8.2"
+    php_memory_limit: "256M"
+    php_upload_max_filesize: "64M"
+
+# Database servers (if separate)
+dbservers:
+  hosts:
+    db1:
+      ansible_host: 192.168.1.20
+      ansible_user: ubuntu
+      ansible_ssh_private_key_file: ~/.ssh/id_rsa
+  
+  vars:
+    mysql_root_password: "{{ vault_mysql_root_password }}"
+    mysql_databases:
+      - name: laravel_production
+        encoding: utf8mb4
+        collation: utf8mb4_unicode_ci
+    
+    mysql_users:
+      - name: laravel
+        password: "{{ vault_db_password }}"
+        priv: "laravel_production.*:ALL"
+
+# Monitoring servers
+monitoring:
+  hosts:
+    monitor1:
+      ansible_host: 192.168.1.30
+      ansible_user: ubuntu
+      ansible_ssh_private_key_file: ~/.ssh/id_rsa
+  
+  vars:
+    uptime_kuma_port: 3001
+    grafana_port: 3000
+    prometheus_port: 9090

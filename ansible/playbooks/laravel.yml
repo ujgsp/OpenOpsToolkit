@@ -1,0 +1,55 @@
+---
+# Laravel Deployment Playbook
+# Part of OpenOps Toolkit
+
+- name: Deploy Laravel Application
+  hosts: webservers
+  become: yes
+  gather_facts: yes
+  
+  vars_files:
+    - ../inventories/group_vars/webservers.yml
+  
+  roles:
+    - role: laravel
+      vars:
+        app_name: "{{ laravel_app_name }}"
+        app_repo: "{{ laravel_app_repo }}"
+        app_branch: "{{ laravel_app_branch }}"
+        app_env: "{{ laravel_app_env }}"
+        domain: "{{ laravel_domain }}"
+        db_name: "{{ laravel_db_name }}"
+        db_user: "{{ laravel_db_user }}"
+        db_password: "{{ laravel_db_password }}"
+        ssl_enabled: "{{ laravel_ssl_enabled }}"
+        ssl_email: "{{ laravel_ssl_email }}"
+  
+  tasks:
+    - name: Display deployment summary
+      debug:
+        msg: |
+          ========================================
+          Laravel Deployment Complete
+          ========================================
+          
+          Application: {{ laravel_app_name }}
+          URL: http{% if laravel_ssl_enabled %}s{% endif %}://{{ laravel_domain }}
+          Environment: {{ laravel_app_env }}
+          
+          Services:
+          - Nginx: http://{{ laravel_domain }}
+          - PHP-FPM: Running
+          - MySQL: Running
+          
+          Next Steps:
+          1. Configure DNS to point to this server
+          2. Update .env file with production credentials
+          3. Run database migrations if needed
+          4. Configure backup strategy
+          
+          Documentation:
+          - Laravel: https://laravel.com/docs
+          - Ansible: https://docs.ansible.com
+          - OpenOps: https://github.com/openops-toolkit/openops-toolkit
+          
+          ========================================

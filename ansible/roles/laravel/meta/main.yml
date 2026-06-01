@@ -1,0 +1,23 @@
+---
+# Laravel Role - Metadata
+
+galaxy_info:
+  author: OpenOps Toolkit Contributors
+  description: Deploy Laravel application on Ubuntu 22.04
+  company: OpenOps Toolkit
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy (22.04)
+  galaxy_tags:
+    - laravel
+    - php
+    - nginx
+    - mysql
+    - web
+    - deployment
+    - ubuntu
+
+dependencies: []

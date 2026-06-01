@@ -1,0 +1,62 @@
+title: "Q&A: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Ask a Question
+        
+        Use this template to ask a question about OpenOps Toolkit.
+        
+        Before asking, please:
+        1. Check the [documentation](docs/)
+        2. Search [existing discussions](https://github.com/openops-toolkit/openops-toolkit/discussions)
+        3. Search [existing issues](https://github.com/openops-toolkit/openops-toolkit/issues)
+  
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What is your question?
+      placeholder: Ask your question here...
+    validations:
+      required: true
+  
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any relevant context
+      placeholder: |
+        - What are you trying to accomplish?
+        - What have you tried so far?
+        - What error messages are you seeing?
+    validations:
+      required: false
+  
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is this question about?
+      options:
+        - Ansible
+        - n8n
+        - Monitoring
+        - Scripts
+        - Documentation
+        - General
+    validations:
+      required: true
+  
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: What is your environment?
+      placeholder: |
+        - OS: [e.g., Ubuntu 22.04]
+        - Version: [e.g., 0.1.0]
+        - Node.js: [e.g., 18.x]
+    validations:
+      required: false

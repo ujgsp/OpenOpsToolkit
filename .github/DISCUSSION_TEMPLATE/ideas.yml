@@ -1,0 +1,75 @@
+title: "Idea: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Share an Idea
+        
+        Use this template to share an idea for improving OpenOps Toolkit.
+        
+        Before submitting, please:
+        1. Check the [roadmap](ROADMAP.md)
+        2. Search [existing discussions](https://github.com/openops-toolkit/openops-toolkit/discussions)
+        3. Search [existing issues](https://github.com/openops-toolkit/openops-toolkit/issues)
+  
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: What is your idea?
+      placeholder: Describe your idea here...
+    validations:
+      required: true
+  
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this idea solve?
+      placeholder: |
+        - What is the current situation?
+        - What is the pain point?
+        - How does this idea help?
+    validations:
+      required: true
+  
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you implement this idea?
+      placeholder: |
+        - What would the solution look like?
+        - How would it work?
+        - What are the key features?
+    validations:
+      required: false
+  
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is this idea for?
+      options:
+        - Ansible
+        - n8n
+        - Monitoring
+        - Scripts
+        - Documentation
+        - General
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this idea?
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
