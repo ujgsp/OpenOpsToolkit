@@ -67,10 +67,10 @@
 - [x] Create priority classification prompt
 
 ## Phase 4: Multi-Server (v0.4.0)
-- [ ] Design multi-server architecture
-- [ ] Create centralized inventory template
-- [ ] Create server group management
-- [ ] Create deployment orchestration
+- [x] Design multi-server architecture
+- [x] Create centralized inventory template
+- [x] Create server group management
+- [x] Create deployment orchestration
 
 ## Phase 5: Production Ready (v1.0.0)
 - [ ] Complete all documentation

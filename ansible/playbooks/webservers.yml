@@ -1,0 +1,63 @@
+---
+# Web Servers Deployment Playbook
+# Deploy web servers only
+
+- name: Deploy Web Servers
+  hosts: webservers
+  become: yes
+  serial: 1
+  
+  roles:
+    - docker
+    - nginx
+  
+  tasks:
+    - name: Update system
+      apt:
+        update_cache: yes
+        upgrade: dist
+    
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+    
+    - name: Configure Nginx
+      template:
+        src: templates/nginx-webserver.conf.j2
+        dest: /etc/nginx/sites-available/{{ app_name }}
+      notify: restart nginx
+    
+    - name: Enable site
+      file:
+        src: /etc/nginx/sites-available/{{ app_name }}
+        dest: /etc/nginx/sites-enabled/{{ app_name }}
+        state: link
+      notify: restart nginx
+    
+    - name: Remove default site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+    
+    - name: Start Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+    
+    - name: Health check
+      uri:
+        url: "http://{{ ansible_host }}/health"
+        status_code: 200
+      register: health_check
+      until: health_check.status == 200
+      retries: 30
+      delay: 10
+  
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted

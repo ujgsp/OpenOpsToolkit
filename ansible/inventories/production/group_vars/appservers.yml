@@ -1,0 +1,50 @@
+# Production - Application Servers Variables
+# Managed by Ansible
+
+# PHP
+php_version: "8.2"
+php_memory_limit: 256M
+php_upload_max_filesize: 64M
+php_post_max_size: 64M
+php_max_execution_time: 300
+php_max_input_time: 300
+
+# PHP-FPM
+php_fpm_pm: dynamic
+php_fpm_max_children: 50
+php_fpm_start_servers: 5
+php_fpm_min_spare_servers: 5
+php_fpm_max_spare_servers: 35
+php_fpm_max_requests: 500
+
+# OPcache
+opcache_enabled: true
+opcache_memory_consumption: 128
+opcache_interned_strings_buffer: 8
+opcache_max_accelerated_files: 10000
+opcache_validate_timestamps: 0
+
+# Laravel
+laravel_queue_driver: redis
+laravel_session_driver: redis
+laravel_cache_driver: redis
+laravel_broadcast_driver: redis
+
+# Supervisor
+supervisor_enabled: true
+supervisor_programs:
+  - name: laravel-queue
+    command: "php /var/www/{{ app_name }}/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600"
+    numprocs: 2
+    autostart: true
+    autorestart: true
+    redirect_stderr: true
+    stdout_logfile: /var/log/supervisor/laravel-queue.log
+  
+  - name: laravel-scheduler
+    command: "while true; do php /var/www/{{ app_name }}/artisan schedule:run --verbose --no-interaction & sleep 60; done"
+    numprocs: 1
+    autostart: true
+    autorestart: true
+    redirect_stderr: true
+    stdout_logfile: /var/log/supervisor/laravel-scheduler.log

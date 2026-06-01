@@ -1,0 +1,49 @@
+# Production - All Servers Variables
+# Managed by Ansible
+
+# SSH Configuration
+ansible_user: ubuntu
+ansible_ssh_private_key_file: ~/.ssh/id_rsa
+ansible_python_interpreter: /usr/bin/python3
+
+# Application
+app_name: myapp
+app_env: production
+app_url: https://example.com
+app_domain: example.com
+app_debug: false
+app_log_level: error
+
+# Timezone
+timezone: Asia/Jakarta
+
+# SSL
+ssl_enabled: true
+ssl_email: admin@example.com
+
+# Backup
+backup_enabled: true
+backup_schedule: "0 2 * * *"
+backup_retention_days: 7
+backup_destination: /mnt/backup
+
+# Monitoring
+monitoring_enabled: true
+prometheus_retention_days: 30
+
+# Security
+firewall_enabled: true
+fail2ban_enabled: true
+auto_updates_enabled: true
+
+# Performance
+sysctl_settings:
+  net.core.somaxconn: 65535
+  net.ipv4.tcp_max_syn_backlog: 65535
+  net.ipv4.ip_local_port_range: "1024 65535"
+  net.ipv4.tcp_tw_reuse: 1
+  net.ipv4.tcp_fin_timeout: 15
+
+# Logging
+log_rotation_enabled: true
+log_retention_days: 30

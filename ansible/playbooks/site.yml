@@ -1,0 +1,166 @@
+---
+# Site Deployment Playbook
+# Deploy entire infrastructure
+
+# 1. Deploy Load Balancers
+- name: Deploy Load Balancers
+  hosts: loadbalancers
+  become: yes
+  roles:
+    - docker
+    - nginx
+  
+  tasks:
+    - name: Configure Nginx load balancer
+      template:
+        src: templates/nginx-loadbalancer.conf.j2
+        dest: /etc/nginx/conf.d/loadbalancer.conf
+      notify: restart nginx
+    
+    - name: Start Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+  
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+
+# 2. Deploy Database Servers
+- name: Deploy Database Servers
+  hosts: dbservers
+  become: yes
+  roles:
+    - docker
+  
+  tasks:
+    - name: Install MySQL
+      apt:
+        name:
+          - mysql-server
+          - mysql-client
+          - python3-mysqldb
+        state: present
+    
+    - name: Start MySQL
+      systemd:
+        name: mysql
+        state: started
+        enabled: yes
+    
+    - name: Configure MySQL
+      template:
+        src: templates/mysql.conf.j2
+        dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+      notify: restart mysql
+    
+    - name: Install Redis
+      apt:
+        name: redis-server
+        state: present
+    
+    - name: Start Redis
+      systemd:
+        name: redis-server
+        state: started
+        enabled: yes
+  
+  handlers:
+    - name: restart mysql
+      systemd:
+        name: mysql
+        state: restarted
+
+# 3. Deploy Application Servers
+- name: Deploy Application Servers
+  hosts: appservers
+  become: yes
+  roles:
+    - docker
+    - laravel
+  
+  vars:
+    app_name: "{{ app_name }}"
+    app_env: "{{ app_env }}"
+    db_host: "{{ groups['dbservers'][0] }}"
+    redis_host: "{{ groups['cache'][0] }}"
+
+# 4. Deploy Web Servers
+- name: Deploy Web Servers
+  hosts: webservers
+  become: yes
+  roles:
+    - docker
+    - nginx
+  
+  tasks:
+    - name: Configure Nginx
+      template:
+        src: templates/nginx-webserver.conf.j2
+        dest: /etc/nginx/sites-available/{{ app_name }}
+      notify: restart nginx
+    
+    - name: Enable site
+      file:
+        src: /etc/nginx/sites-available/{{ app_name }}
+        dest: /etc/nginx/sites-enabled/{{ app_name }}
+        state: link
+      notify: restart nginx
+    
+    - name: Start Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+  
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+
+# 5. Deploy Monitoring
+- name: Deploy Monitoring
+  hosts: monitoring
+  become: yes
+  roles:
+    - docker
+  
+  tasks:
+    - name: Create monitoring directory
+      file:
+        path: /opt/monitoring
+        state: directory
+    
+    - name: Copy Docker Compose
+      template:
+        src: templates/monitoring-docker-compose.yml.j2
+        dest: /opt/monitoring/docker-compose.yml
+    
+    - name: Start monitoring stack
+      shell: |
+        cd /opt/monitoring
+        docker-compose up -d
+
+# 6. Health Checks
+- name: Health Checks
+  hosts: all_servers
+  become: yes
+  tasks:
+    - name: Check disk usage
+      shell: df -h /
+      register: disk_usage
+    
+    - name: Check memory usage
+      shell: free -h
+      register: memory_usage
+    
+    - name: Display health status
+      debug:
+        msg: |
+          Server: {{ inventory_hostname }}
+          Disk: {{ disk_usage.stdout_lines[-1] }}
+          Memory: {{ memory_usage.stdout_lines[1] }}

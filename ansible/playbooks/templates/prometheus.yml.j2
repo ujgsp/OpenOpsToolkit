@@ -1,0 +1,61 @@
+# Prometheus Configuration
+# Managed by Ansible
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter - All servers
+  - job_name: 'node'
+    static_configs:
+      - targets:
+        {% for host in groups['all_servers'] %}
+        - '{{ hostvars[host]["ansible_host"] }}:9100'
+        {% endfor %}
+
+  # Web Servers
+  - job_name: 'nginx'
+    static_configs:
+      - targets:
+        {% for host in groups['webservers'] %}
+        - '{{ hostvars[host]["ansible_host"] }}:9113'
+        {% endfor %}
+
+  # Application Servers
+  - job_name: 'php-fpm'
+    static_configs:
+      - targets:
+        {% for host in groups['appservers'] %}
+        - '{{ hostvars[host]["ansible_host"] }}:9253'
+        {% endfor %}
+
+  # Database Servers
+  - job_name: 'mysql'
+    static_configs:
+      - targets:
+        {% for host in groups['dbservers'] %}
+        - '{{ hostvars[host]["ansible_host"] }}:9104'
+        {% endfor %}
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets:
+        {% for host in groups['cache'] %}
+        - '{{ hostvars[host]["ansible_host"] }}:9121'
+        {% endfor %}

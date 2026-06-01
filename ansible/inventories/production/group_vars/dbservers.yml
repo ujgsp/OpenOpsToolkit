@@ -1,0 +1,47 @@
+# Production - Database Servers Variables
+# Managed by Ansible
+
+# MySQL
+mysql_version: "8.0"
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_max_connections: 200
+mysql_innodb_buffer_pool_size: 1G
+mysql_innodb_log_file_size: 256M
+mysql_innodb_flush_log_at_trx_commit: 1
+mysql_innodb_lock_wait_timeout: 50
+
+# MySQL Performance
+mysql_query_cache_type: 0
+mysql_query_cache_size: 0
+mysql_thread_cache_size: 16
+mysql_table_open_cache: 4000
+mysql_table_definition_cache: 2000
+
+# MySQL Security
+mysql_bind_address: "0.0.0.0"
+mysql_skip_name_resolve: true
+mysql_symbolic_links: 0
+
+# MySQL Replication
+mysql_replication_enabled: false
+mysql_replication_master: db1
+mysql_replication_user: replicator
+mysql_replication_password: "{{ vault_mysql_replication_password }}"
+
+# MySQL Backup
+mysql_backup_enabled: true
+mysql_backup_schedule: "0 3 * * *"
+mysql_backup_retention_days: 30
+mysql_backup_destination: /mnt/backup/mysql
+
+# Redis
+redis_enabled: true
+redis_port: 6379
+redis_maxmemory: 256mb
+redis_maxmemory_policy: allkeys-lru
+redis_password: "{{ vault_redis_password }}"
+
+# Redis Backup
+redis_backup_enabled: true
+redis_backup_schedule: "0 4 * * *"
+redis_backup_retention_days: 7

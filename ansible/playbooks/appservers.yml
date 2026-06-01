@@ -1,0 +1,51 @@
+---
+# Application Servers Deployment Playbook
+# Deploy application servers only
+
+- name: Deploy Application Servers
+  hosts: appservers
+  become: yes
+  serial: 1
+  
+  roles:
+    - docker
+    - laravel
+  
+  vars:
+    app_name: "{{ app_name }}"
+    app_env: "{{ app_env }}"
+    app_repo: "{{ app_repo }}"
+    app_branch: "{{ app_branch }}"
+    db_host: "{{ groups['dbservers'][0] }}"
+    redis_host: "{{ groups['cache'][0] }}"
+  
+  tasks:
+    - name: Update system
+      apt:
+        update_cache: yes
+        upgrade: dist
+    
+    - name: Install PHP
+      apt:
+        name:
+          - "php{{ php_version }}-fpm"
+          - "php{{ php_version }}-mysql"
+          - "php{{ php_version }}-redis"
+          - "php{{ php_version }}-xml"
+          - "php{{ php_version }}-mbstring"
+          - "php{{ php_version }}-curl"
+          - "php{{ php_version }}-zip"
+        state: present
+    
+    - name: Deploy application
+      include_role:
+        name: laravel
+    
+    - name: Health check
+      uri:
+        url: "http://{{ ansible_host }}:9000/status"
+        status_code: 200
+      register: health_check
+      until: health_check.status == 200
+      retries: 30
+      delay: 10

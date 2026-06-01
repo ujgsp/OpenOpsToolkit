@@ -1,0 +1,63 @@
+---
+# Monitoring Deployment Playbook
+# Deploy monitoring stack
+
+- name: Deploy Monitoring
+  hosts: monitoring
+  become: yes
+  
+  roles:
+    - docker
+  
+  tasks:
+    - name: Create monitoring directory
+      file:
+        path: /opt/monitoring
+        state: directory
+    
+    - name: Create subdirectories
+      file:
+        path: "/opt/monitoring/{{ item }}"
+        state: directory
+      loop:
+        - prometheus
+        - grafana
+        - alertmanager
+    
+    - name: Copy Prometheus config
+      template:
+        src: templates/prometheus.yml.j2
+        dest: /opt/monitoring/prometheus/prometheus.yml
+    
+    - name: Copy Alertmanager config
+      template:
+        src: templates/alertmanager.yml.j2
+        dest: /opt/monitoring/alertmanager/alertmanager.yml
+    
+    - name: Copy Docker Compose
+      template:
+        src: templates/monitoring-docker-compose.yml.j2
+        dest: /opt/monitoring/docker-compose.yml
+    
+    - name: Start monitoring stack
+      shell: |
+        cd /opt/monitoring
+        docker-compose up -d
+    
+    - name: Health check Prometheus
+      uri:
+        url: "http://{{ ansible_host }}:9090/-/healthy"
+        status_code: 200
+      register: prometheus_health
+      until: prometheus_health.status == 200
+      retries: 30
+      delay: 10
+    
+    - name: Health check Grafana
+      uri:
+        url: "http://{{ ansible_host }}:3000/api/health"
+        status_code: 200
+      register: grafana_health
+      until: grafana_health.status == 200
+      retries: 30
+      delay: 10
