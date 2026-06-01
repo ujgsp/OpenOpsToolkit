@@ -1,21 +1,21 @@
-# Setup OpenVPN Server
+# Setup Server OpenVPN
 
-Complete guide to deploy OpenVPN server for secure remote access.
+Panduan lengkap untuk deploy server OpenVPN untuk akses remote yang aman.
 
-## Overview
+## Ringkasan
 
-This guide walks you through deploying an OpenVPN server. OpenVPN provides:
+Panduan ini akan memandu Anda untuk deploy server OpenVPN. OpenVPN menyediakan:
 
-- Secure remote access to internal networks
-- Encrypted communication
-- Client certificate authentication
-- Multi-platform support
+- Akses remote yang aman ke jaringan internal
+- Komunikasi terenkripsi
+- Autentikasi sertifikat klien
+- Dukungan multi-platform
 
-## Architecture
+## Arsitektur
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      OpenVPN Server                          │
+│                      Server OpenVPN                          │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
 │  │   OpenVPN   │  │   Firewall  │  │   Routing   │        │
@@ -30,24 +30,24 @@ This guide walks you through deploying an OpenVPN server. OpenVPN provides:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Requirements
+## Kebutuhan
 
-### Server Requirements
+### Kebutuhan Server
 
 - **OS**: Ubuntu 22.04 LTS
-- **RAM**: Minimum 512MB
-- **Storage**: Minimum 10GB
-- **Access**: SSH with sudo privileges
-- **Network**: Public IP address
+- **RAM**: Minimal 512MB
+- **Penyimpanan**: Minimal 10GB
+- **Akses**: SSH dengan hak sudo
+- **Jaringan**: Alamat IP publik
 
-### Client Requirements
+### Kebutuhan Klien
 
 - **OS**: Windows, macOS, Linux, iOS, Android
-- **Software**: OpenVPN client
+- **Perangkat Lunak**: Klien OpenVPN
 
-## Installation
+## Instalasi
 
-### Step 1: Configure Inventory
+### Langkah 1: Konfigurasi Inventory
 
 Edit `ansible/inventories/production/hosts.yml`:
 
@@ -55,17 +55,17 @@ Edit `ansible/inventories/production/hosts.yml`:
 vpn_servers:
   hosts:
     vpn1:
-      ansible_host: YOUR_SERVER_IP
+      ansible_host: IP_SERVER_ANDA
       ansible_user: ubuntu
       ansible_ssh_private_key_file: ~/.ssh/id_rsa
 ```
 
-### Step 2: Configure Variables
+### Langkah 2: Konfigurasi Variabel
 
 Edit `ansible/inventories/production/group_vars/vpn_servers.yml`:
 
 ```yaml
-openvpn_server_ip: YOUR_SERVER_IP
+openvpn_server_ip: IP_SERVER_ANDA
 openvpn_port: 1194
 openvpn_protocol: udp
 openvpn_clients:
@@ -74,213 +74,213 @@ openvpn_clients:
   - tablet
 ```
 
-### Step 3: Deploy
+### Langkah 3: Deploy
 
 ```bash
 ansible-playbook -i ansible/inventories/production ansible/roles/openvpn/tasks/main.yml
 ```
 
-### Step 4: Verify Deployment
+### Langkah 4: Verifikasi Deployment
 
 ```bash
-# Check OpenVPN status
-ssh ubuntu@YOUR_SERVER_IP "systemctl status openvpn"
+# Cek status OpenVPN
+ssh ubuntu@IP_SERVER_ANDA "systemctl status openvpn"
 
-# Check OpenVPN logs
-ssh ubuntu@YOUR_SERVER_IP "tail -f /var/log/openvpn.log"
+# Cek log OpenVPN
+ssh ubuntu@IP_SERVER_ANDA "tail -f /var/log/openvpn.log"
 
-# Check listening port
-ssh ubuntu@YOUR_SERVER_IP "sudo netstat -tlnp | grep 1194"
+# Cek port yang mendengarkan
+ssh ubuntu@IP_SERVER_ANDA "sudo netstat -tlnp | grep 1194"
 ```
 
-### Step 5: Download Client Configurations
+### Langkah 5: Download Konfigurasi Klien
 
 ```bash
-# Download client configs
-scp -r ubuntu@YOUR_SERVER_IP:/etc/openvpn/clients/ ./openvpn-clients/
+# Download konfigurasi klien
+scp -r ubuntu@IP_SERVER_ANDA:/etc/openvpn/clients/ ./openvpn-clients/
 
-# List available clients
+# Daftar klien yang tersedia
 ls openvpn-clients/
 ```
 
-## What Happens
+## Apa yang Terjadi
 
-1. **Install OpenVPN**: Installs OpenVPN and EasyRSA
-2. **Setup PKI**: Initializes PKI and generates certificates
-3. **Generate Server Config**: Creates server configuration
-4. **Generate Client Configs**: Creates client configuration files
-5. **Configure Firewall**: Enables IP forwarding and NAT
-6. **Start Service**: Enables and starts OpenVPN
+1. **Install OpenVPN**: Menginstall OpenVPN dan EasyRSA
+2. **Setup PKI**: Menginisialisasi PKI dan menghasilkan sertifikat
+3. **Buat Konfigurasi Server**: Membuat konfigurasi server
+4. **Buat Konfigurasi Klien**: Membuat file konfigurasi klien
+5. **Konfigurasi Firewall**: Mengaktifkan IP forwarding dan NAT
+6. **Mulai Layanan**: Mengaktifkan dan memulai OpenVPN
 
-## Client Configuration
+## Konfigurasi Klien
 
 ### Windows
 
 1. Download [OpenVPN Connect](https://openvpn.net/client/)
-2. Import `.ovpn` file
-3. Connect to server
+2. Import file `.ovpn`
+3. Hubungkan ke server
 
 ### macOS
 
 1. Install [Tunnelblick](https://tunnelblick.net/)
-2. Import `.ovpn` file
-3. Connect to server
+2. Import file `.ovpn`
+3. Hubungkan ke server
 
 ### Linux
 
 ```bash
-# Install OpenVPN client
+# Install klien OpenVPN
 sudo apt install openvpn
 
-# Connect using config file
+# Hubungkan menggunakan file konfigurasi
 sudo openvpn --config client.ovpn
 ```
 
 ### iOS
 
 1. Install [OpenVPN Connect](https://apps.apple.com/app/openvpn-connect/id590379981)
-2. Import `.ovpn` file
-3. Connect to server
+2. Import file `.ovpn`
+3. Hubungkan ke server
 
 ### Android
 
 1. Install [OpenVPN Connect](https://play.google.com/store/apps/details?id=net.openvpn.openvpn)
-2. Import `.ovpn` file
-3. Connect to server
+2. Import file `.ovpn`
+3. Hubungkan ke server
 
-## Verification Checklist
+## Checklist Verifikasi
 
-After deployment, verify:
+Setelah deployment, verifikasi:
 
-- [ ] OpenVPN service is running
-- [ ] Port 1194 is listening
-- [ ] Client configs are generated
-- [ ] Can connect from client
-- [ ] Can access internal network
-- [ ] DNS resolution works
-- [ ] Firewall is configured
+- [ ] Layanan OpenVPN berjalan
+- [ ] Port 1194 mendengarkan
+- [ ] Konfigurasi klien dihasilkan
+- [ ] Dapat terhubung dari klien
+- [ ] Dapat mengakses jaringan internal
+- [ ] Resolusi DNS berfungsi
+- [ ] Firewall dikonfigurasi
 
-## Troubleshooting
+## Pemecahan Masalah
 
-### Issue: Cannot Connect
+### Masalah: Tidak Dapat Terhubung
 
-**Symptoms**: Client cannot connect to VPN server
+**Gejala**: Klien tidak dapat terhubung ke server VPN
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check OpenVPN status
-ssh ubuntu@YOUR_SERVER_IP "systemctl status openvpn"
+# Cek status OpenVPN
+ssh ubuntu@IP_SERVER_ANDA "systemctl status openvpn"
 
-# Check OpenVPN logs
-ssh ubuntu@YOUR_SERVER_IP "tail -f /var/log/openvpn.log"
+# Cek log OpenVPN
+ssh ubuntu@IP_SERVER_ANDA "tail -f /var/log/openvpn.log"
 
-# Check firewall
-ssh ubuntu@YOUR_SERVER_IP "sudo ufw status"
+# Cek firewall
+ssh ubuntu@IP_SERVER_ANDA "sudo ufw status"
 
-# Check port forwarding
-ssh ubuntu@YOUR_SERVER_IP "sudo sysctl net.ipv4.ip_forward"
+# Cek port forwarding
+ssh ubuntu@IP_SERVER_ANDA "sudo sysctl net.ipv4.ip_forward"
 ```
 
-### Issue: No Internet After Connect
+### Masalah: Tidak Ada Internet Setelah Terhubung
 
-**Symptoms**: Connected to VPN but no internet access
+**Gejala**: Terhubung ke VPN tetapi tidak ada akses internet
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check IP forwarding
-ssh ubuntu@YOUR_SERVER_IP "sudo sysctl net.ipv4.ip_forward"
+# Cek IP forwarding
+ssh ubuntu@IP_SERVER_ANDA "sudo sysctl net.ipv4.ip_forward"
 
-# Enable IP forwarding
-ssh ubuntu@YOUR_SERVER_IP "echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf"
-ssh ubuntu@YOUR_SERVER_IP "sudo sysctl -p"
+# Aktifkan IP forwarding
+ssh ubuntu@IP_SERVER_ANDA "echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf"
+ssh ubuntu@IP_SERVER_ANDA "sudo sysctl -p"
 
-# Check NAT rules
-ssh ubuntu@YOUR_SERVER_IP "sudo iptables -t nat -L"
+# Cek aturan NAT
+ssh ubuntu@IP_SERVER_ANDA "sudo iptables -t nat -L"
 ```
 
-### Issue: DNS Not Working
+### Masalah: DNS Tidak Berfungsi
 
-**Symptoms**: Connected to VPN but DNS resolution fails
+**Gejala**: Terhubung ke VPN tetapi resolusi DNS gagal
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check DNS configuration in server.conf
-ssh ubuntu@YOUR_SERVER_IP "cat /etc/openvpn/server.conf | grep push"
+# Cek konfigurasi DNS di server.conf
+ssh ubuntu@IP_SERVER_ANDA "cat /etc/openvpn/server.conf | grep push"
 
-# Add DNS push directive
-# In server.conf:
+# Tambahkan direktif push DNS
+# Di server.conf:
 # push "dhcp-option DNS 8.8.8.8"
 # push "dhcp-option DNS 8.8.4.4"
 
 # Restart OpenVPN
-ssh ubuntu@YOUR_SERVER_IP "sudo systemctl restart openvpn"
+ssh ubuntu@IP_SERVER_ANDA "sudo systemctl restart openvpn"
 ```
 
-### Issue: Certificate Errors
+### Masalah: Error Sertifikat
 
-**Symptoms**: Client shows certificate verification failed
+**Gejala**: Klien menampilkan verifikasi sertifikat gagal
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Regenerate client certificate
+# Hasilkan ulang sertifikat klien
 cd /etc/openvpn/easy-rsa
 ./easyrsa revoke client1
 ./easyrsa gen-req client1 nopass
 ./easyrsa sign-req client client1
 
-# Copy new certificate to client
+# Salin sertifikat baru ke klien
 scp /etc/openvpn/clients/client1/client1.ovpn user@client:/path/
 ```
 
-## Maintenance
+## Pemeliharaan
 
-### Regular Tasks
+### Tugas Rutin
 
-1. **Check logs**: `tail -f /var/log/openvpn.log`
-2. **Monitor connections**: `cat /etc/openvpn/ipp.txt`
-3. **Check certificates**: `openssl x509 -in /etc/openvpn/server.crt -noout -dates`
+1. **Cek log**: `tail -f /var/log/openvpn.log`
+2. **Monitor koneksi**: `cat /etc/openvpn/ipp.txt`
+3. **Cek sertifikat**: `openssl x509 -in /etc/openvpn/server.crt -noout -dates`
 4. **Backup PKI**: `tar -czf pki-backup.tar.gz /etc/openvpn/easy-rsa/pki`
 
-### Add New Client
+### Tambah Klien Baru
 
 ```bash
-# Generate new client certificate
+# Hasilkan sertifikat klien baru
 cd /etc/openvpn/easy-rsa
-./easyrsa gen-req newclient nopass
-./easyrsa sign-req client newclient
+./easyrsa gen-req klienbaru nopass
+./easyrsa sign-req client klienbaru
 
-# Copy client config
-cp /etc/openvpn/easy-rsa/pki/issued/newclient.crt /etc/openvpn/clients/newclient/
-cp /etc/openvpn/easy-rsa/pki/private/newclient.key /etc/openvpn/clients/newclient/
+# Salin konfigurasi klien
+cp /etc/openvpn/easy-rsa/pki/issued/klienbaru.crt /etc/openvpn/clients/klienbaru/
+cp /etc/openvpn/easy-rsa/pki/private/klienbaru.key /etc/openvpn/clients/klienbaru/
 
-# Generate .ovpn file
-# Use template from existing client
+# Buat file .ovpn
+# Gunakan template dari klien yang ada
 ```
 
-### Revoke Client
+### Cabut Klien
 
 ```bash
-# Revoke client certificate
+# Cabut sertifikat klien
 cd /etc/openvpn/easy-rsa
 ./easyrsa revoke client1
 
-# Generate CRL
+# Hasilkan CRL
 ./easyrsa gen-crl
 
-# Copy CRL to OpenVPN directory
+# Salin CRL ke direktori OpenVPN
 cp /etc/openvpn/easy-rsa/pki/crl.pem /etc/openvpn/
 
 # Restart OpenVPN
 sudo systemctl restart openvpn
 ```
 
-## Resources
+## Sumber Daya
 
-- [OpenVPN Documentation](https://openvpn.net/community-resources/)
-- [EasyRSA Documentation](https://easy-rsa.readthedocs.io/)
+- [Dokumentasi OpenVPN](https://openvpn.net/community-resources/)
+- [Dokumentasi EasyRSA](https://easy-rsa.readthedocs.io/)
 - [OpenVPN Connect](https://openvpn.net/client/)
 - [Tunnelblick](https://tunnelblick.net/)

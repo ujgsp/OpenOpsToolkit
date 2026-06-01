@@ -1,21 +1,21 @@
-# Setup n8n Server
+# Setup Server n8n
 
-Complete guide to deploy n8n workflow automation server.
+Panduan lengkap untuk deploy server workflow automation n8n.
 
-## Overview
+## Ringkasan
 
-This guide walks you through deploying n8n, a visual workflow automation tool. n8n allows you to:
+Panduan ini akan memandu Anda untuk deploy n8n, tool otomasi workflow visual. n8n memungkinkan Anda untuk:
 
-- Automate operational tasks
-- Connect different services
-- Create visual workflows
-- Receive and send webhooks
+- Mengotomatiskan tugas operasional
+- Menghubungkan layanan berbeda
+- Membuat workflow visual
+- Menerima dan mengirim webhook
 
-## Architecture
+## Arsitektur
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      n8n Server                              │
+│                      Server n8n                              │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
 │  │     n8n     │  │  PostgreSQL │  │    Nginx    │        │
@@ -30,36 +30,36 @@ This guide walks you through deploying n8n, a visual workflow automation tool. n
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Requirements
+## Kebutuhan
 
-### Server Requirements
+### Kebutuhan Server
 
 - **OS**: Ubuntu 22.04 LTS
-- **RAM**: Minimum 2GB (4GB recommended)
-- **Storage**: Minimum 30GB
-- **Access**: SSH with sudo privileges
+- **RAM**: Minimal 2GB (4GB direkomendasikan)
+- **Penyimpanan**: Minimal 30GB
+- **Akses**: SSH dengan hak sudo
 
-### Software Requirements
+### Kebutuhan Perangkat Lunak
 
 - **Docker**: 20.10+
 - **Docker Compose**: 2.0+
 
-## Installation
+## Instalasi
 
-### Step 1: Install Docker (if not installed)
+### Langkah 1: Install Docker (jika belum terinstall)
 
 ```bash
-# Using Ansible role
+# Menggunakan Ansible role
 ansible-playbook -i ansible/inventories/production ansible/roles/docker/tasks/main.yml
 
-# Or manually
+# Atau secara manual
 sudo apt update
 sudo apt install -y docker.io docker-compose
 sudo systemctl enable docker
 sudo systemctl start docker
 ```
 
-### Step 2: Configure Inventory
+### Langkah 2: Konfigurasi Inventory
 
 Edit `ansible/inventories/production/hosts.yml`:
 
@@ -67,204 +67,204 @@ Edit `ansible/inventories/production/hosts.yml`:
 n8n_servers:
   hosts:
     n8n1:
-      ansible_host: YOUR_SERVER_IP
+      ansible_host: IP_SERVER_ANDA
       ansible_user: ubuntu
       ansible_ssh_private_key_file: ~/.ssh/id_rsa
 ```
 
-### Step 3: Configure Variables
+### Langkah 3: Konfigurasi Variabel
 
 Edit `ansible/inventories/production/group_vars/n8n_servers.yml`:
 
 ```yaml
-n8n_domain: n8n.yourdomain.com
+n8n_domain: n8n.domainanda.com
 n8n_basic_auth_user: admin
-n8n_basic_auth_password: your_secure_password
+n8n_basic_auth_password: password_anda_yang_aman
 n8n_ssl_enabled: true
-n8n_ssl_email: your@email.com
+n8n_ssl_email: email@anda.com
 ```
 
-### Step 4: Deploy
+### Langkah 4: Deploy
 
 ```bash
 ansible-playbook -i ansible/inventories/production ansible/roles/n8n/tasks/main.yml
 ```
 
-### Step 5: Verify Deployment
+### Langkah 5: Verifikasi Deployment
 
 ```bash
-# Check if n8n is running
-ssh ubuntu@YOUR_SERVER_IP "docker ps | grep n8n"
+# Cek apakah n8n berjalan
+ssh ubuntu@IP_SERVER_ANDA "docker ps | grep n8n"
 
-# Check n8n logs
-ssh ubuntu@YOUR_SERVER_IP "docker logs n8n"
+# Cek log n8n
+ssh ubuntu@IP_SERVER_ANDA "docker logs n8n"
 
-# Test HTTP response
-curl -I http://YOUR_SERVER_IP:5678
+# Tes HTTP response
+curl -I http://IP_SERVER_ANDA:5678
 
-# Test HTTPS (if SSL enabled)
-curl -I https://n8n.yourdomain.com
+# Tes HTTPS (jika SSL diaktifkan)
+curl -I https://n8n.domainanda.com
 ```
 
-### Step 6: Access n8n
+### Langkah 6: Akses n8n
 
-Open http://YOUR_SERVER_IP:5678 (or https://n8n.yourdomain.com)
+Buka http://IP_SERVER_ANDA:5678 (atau https://n8n.domainanda.com)
 
-Login with credentials configured in step 3.
+Login dengan kredensial yang dikonfigurasi di langkah 3.
 
-## What Happens
+## Apa yang Terjadi
 
-1. **Install Docker**: Ensures Docker is installed and running
-2. **Create Directories**: Creates n8n data directories
-3. **Deploy n8n**: Starts n8n with Docker Compose
-4. **Configure Nginx**: Sets up reverse proxy
-5. **Setup SSL**: Configures Let's Encrypt (if domain provided)
+1. **Install Docker**: Memastikan Docker terinstall dan berjalan
+2. **Buat Direktori**: Membuat direktori data n8n
+3. **Deploy n8n**: Memulai n8n dengan Docker Compose
+4. **Konfigurasi Nginx**: Mengatur reverse proxy
+5. **Setup SSL**: Mengkonfigurasi Let's Encrypt (jika domain tersedia)
 
-## Import Workflows
+## Import Workflow
 
-### SSL Expired Alert
+### Alert SSL Expired
 
-1. Open n8n dashboard
-2. Click **Import from File**
-3. Select `n8n/workflows/monitoring/ssl-expired-alert.json`
-4. Configure Telegram credentials
-5. Update domain list
-6. Activate workflow
+1. Buka dashboard n8n
+2. Klik **Import from File**
+3. Pilih `n8n/workflows/monitoring/ssl-expired-alert.json`
+4. Konfigurasi kredensial Telegram
+5. Update daftar domain
+6. Aktifkan workflow
 
-### Domain Expired Alert
+### Alert Domain Expired
 
 1. Import `n8n/workflows/monitoring/domain-expired-alert.json`
-2. Configure WHOIS API key
-3. Update domain list
-4. Activate workflow
+2. Konfigurasi kunci API WHOIS
+3. Update daftar domain
+4. Aktifkan workflow
 
-### Website Down Alert
+### Alert Website Down
 
 1. Import `n8n/workflows/monitoring/website-down-alert.json`
-2. Configure Telegram credentials
-3. Update URL list
-4. Activate workflow
+2. Konfigurasi kredensial Telegram
+3. Update daftar URL
+4. Aktifkan workflow
 
-## Verification Checklist
+## Checklist Verifikasi
 
-After deployment, verify:
+Setelah deployment, verifikasi:
 
-- [ ] n8n container is running
-- [ ] PostgreSQL container is running
-- [ ] n8n web interface is accessible
-- [ ] Can login with configured credentials
-- [ ] Can import workflows
-- [ ] Can execute workflows
-- [ ] SSL certificate is valid (if enabled)
+- [ ] Container n8n berjalan
+- [ ] Container PostgreSQL berjalan
+- [ ] Antarmuka web n8n dapat diakses
+- [ ] Dapat login dengan kredensial yang dikonfigurasi
+- [ ] Dapat mengimpor workflow
+- [ ] Dapat mengeksekusi workflow
+- [ ] Sertifikat SSL valid (jika diaktifkan)
 
-## Troubleshooting
+## Pemecahan Masalah
 
-### Issue: Container Not Starting
+### Masalah: Container Tidak Berjalan
 
-**Symptoms**: Container exits immediately after starting
+**Gejala**: Container langsung keluar setelah dimulai
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check Docker logs
-ssh ubuntu@YOUR_SERVER_IP "docker logs n8n"
+# Cek log Docker
+ssh ubuntu@IP_SERVER_ANDA "docker logs n8n"
 
-# Check Docker Compose
-ssh ubuntu@YOUR_SERVER_IP "cd /opt/n8n && docker-compose ps"
+# Cek Docker Compose
+ssh ubuntu@IP_SERVER_ANDA "cd /opt/n8n && docker-compose ps"
 
-# Restart containers
-ssh ubuntu@YOUR_SERVER_IP "cd /opt/n8n && docker-compose restart"
+# Restart container
+ssh ubuntu@IP_SERVER_ANDA "cd /opt/n8n && docker-compose restart"
 ```
 
-### Issue: Cannot Access Web Interface
+### Masalah: Tidak Dapat Mengakses Antarmuka Web
 
-**Symptoms**: Connection refused or timeout
+**Gejala**: Koneksi ditolak atau timeout
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check if port is open
-ssh ubuntu@YOUR_SERVER_IP "sudo netstat -tlnp | grep 5678"
+# Cek apakah port terbuka
+ssh ubuntu@IP_SERVER_ANDA "sudo netstat -tlnp | grep 5678"
 
-# Check Nginx configuration
-ssh ubuntu@YOUR_SERVER_IP "sudo nginx -t"
+# Cek konfigurasi Nginx
+ssh ubuntu@IP_SERVER_ANDA "sudo nginx -t"
 
-# Check Nginx logs
-ssh ubuntu@YOUR_SERVER_IP "sudo tail -f /var/log/nginx/n8n-error.log"
+# Cek log Nginx
+ssh ubuntu@IP_SERVER_ANDA "sudo tail -f /var/log/nginx/n8n-error.log"
 ```
 
-### Issue: Database Connection Issues
+### Masalah: Koneksi Database Bermasalah
 
-**Symptoms**: n8n shows database connection error
+**Gejala**: n8n menampilkan error koneksi database
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check PostgreSQL status
-ssh ubuntu@YOUR_SERVER_IP "docker exec n8n-postgres pg_isready"
+# Cek status PostgreSQL
+ssh ubuntu@IP_SERVER_ANDA "docker exec n8n-postgres pg_isready"
 
-# Check PostgreSQL logs
-ssh ubuntu@YOUR_SERVER_IP "docker logs n8n-postgres"
+# Cek log PostgreSQL
+ssh ubuntu@IP_SERVER_ANDA "docker logs n8n-postgres"
 
 # Restart PostgreSQL
-ssh ubuntu@YOUR_SERVER_IP "cd /opt/n8n && docker-compose restart postgres"
+ssh ubuntu@IP_SERVER_ANDA "cd /opt/n8n && docker-compose restart postgres"
 ```
 
-### Issue: SSL Certificate Not Working
+### Masalah: Sertifikat SSL Tidak Berfungsi
 
-**Symptoms**: Browser shows "Not Secure" or certificate error
+**Gejala**: Browser menampilkan "Not Secure" atau error sertifikat
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check certificate status
-ssh ubuntu@YOUR_SERVER_IP "sudo certbot certificates"
+# Cek status sertifikat
+ssh ubuntu@IP_SERVER_ANDA "sudo certbot certificates"
 
-# Renew certificate
-ssh ubuntu@YOUR_SERVER_IP "sudo certbot renew"
+# Perbarui sertifikat
+ssh ubuntu@IP_SERVER_ANDA "sudo certbot renew"
 
-# Check Nginx SSL configuration
-ssh ubuntu@YOUR_SERVER_IP "sudo nginx -t"
+# Cek konfigurasi SSL Nginx
+ssh ubuntu@IP_SERVER_ANDA "sudo nginx -t"
 ```
 
-## Maintenance
+## Pemeliharaan
 
-### Regular Tasks
+### Tugas Rutin
 
-1. **Update images**: `docker-compose pull && docker-compose up -d`
-2. **Check logs**: `docker-compose logs -f`
-3. **Monitor disk space**: `df -h`
-4. **Backup data**: See backup section
+1. **Update image**: `docker-compose pull && docker-compose up -d`
+2. **Cek log**: `docker-compose logs -f`
+3. **Monitor ruang disk**: `df -h`
+4. **Backup data**: Lihat bagian backup
 
-### Backup Strategy
+### Strategi Backup
 
 ```bash
-# Backup n8n data
+# Backup data n8n
 tar -czf n8n-backup.tar.gz /opt/n8n/data
 
-# Backup PostgreSQL data
+# Backup data PostgreSQL
 docker exec n8n-postgres pg_dump -U n8n n8n > n8n-db-backup.sql
 
-# Backup to remote location
+# Backup ke lokasi remote
 rsync -avz /opt/n8n/ user@backup-server:/backups/n8n/
 ```
 
 ### Update Stack
 
 ```bash
-# Pull latest images
+# Pull image terbaru
 docker-compose pull
 
-# Restart services
+# Restart layanan
 docker-compose up -d
 
-# Check for updates
+# Cek update
 docker-compose images
 ```
 
-## Resources
+## Sumber Daya
 
-- [n8n Documentation](https://docs.n8n.io/)
-- [n8n Community](https://community.n8n.io/)
-- [Docker Documentation](https://docs.docker.com/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Dokumentasi n8n](https://docs.n8n.io/)
+- [Komunitas n8n](https://community.n8n.io/)
+- [Dokumentasi Docker](https://docs.docker.com/)
+- [Dokumentasi PostgreSQL](https://www.postgresql.org/docs/)

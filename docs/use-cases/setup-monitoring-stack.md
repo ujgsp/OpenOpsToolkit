@@ -1,21 +1,21 @@
 # Setup Monitoring Stack
 
-Complete guide to deploy Uptime Kuma, Grafana, and Prometheus for monitoring.
+Panduan lengkap untuk deploy Uptime Kuma, Grafana, dan Prometheus untuk monitoring.
 
-## Overview
+## Ringkasan
 
-This guide walks you through deploying a complete monitoring stack using Docker Compose. The stack includes:
+Panduan ini akan memandu Anda untuk deploy stack monitoring lengkap menggunakan Docker Compose. Stack ini mencakup:
 
-- **Uptime Kuma**: Website and service monitoring
-- **Grafana**: Visualization and dashboards
-- **Prometheus**: Metrics collection and storage
-- **Node Exporter**: System metrics
+- **Uptime Kuma**: Monitoring website dan layanan
+- **Grafana**: Visualisasi dan dashboard
+- **Prometheus**: Pengumpulan dan penyimpanan metrik
+- **Node Exporter**: Metrik sistem
 
-## Architecture
+## Arsitektur
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Monitoring Stack                        │
+│                      Stack Monitoring                        │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
 │  │ Uptime Kuma │  │   Grafana   │  │  Prometheus │        │
@@ -30,125 +30,125 @@ This guide walks you through deploying a complete monitoring stack using Docker 
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Requirements
+## Kebutuhan
 
-### Server Requirements
+### Kebutuhan Server
 
 - **OS**: Ubuntu 22.04 LTS
-- **RAM**: Minimum 2GB (4GB recommended)
-- **Storage**: Minimum 30GB
-- **Access**: SSH with sudo privileges
+- **RAM**: Minimal 2GB (4GB direkomendasikan)
+- **Penyimpanan**: Minimal 30GB
+- **Akses**: SSH dengan hak sudo
 
-### Software Requirements
+### Kebutuhan Perangkat Lunak
 
 - **Docker**: 20.10+
 - **Docker Compose**: 2.0+
 
-## Installation
+## Instalasi
 
-### Step 1: Install Docker (if not installed)
+### Langkah 1: Install Docker (jika belum terinstall)
 
 ```bash
-# Using Ansible role
+# Menggunakan Ansible role
 ansible-playbook -i ansible/inventories/production ansible/roles/docker/tasks/main.yml
 
-# Or manually
+# Atau secara manual
 sudo apt update
 sudo apt install -y docker.io docker-compose
 sudo systemctl enable docker
 sudo systemctl start docker
 ```
 
-### Step 2: Clone Repository
+### Langkah 2: Clone Repository
 
 ```bash
 git clone https://github.com/ujgsp/OpenOpsToolkit.git
 cd OpenOpsToolkit/monitoring
 ```
 
-### Step 3: Start Monitoring Stack
+### Langkah 3: Mulai Stack Monitoring
 
 ```bash
 docker-compose up -d
 ```
 
-### Step 4: Verify Services
+### Langkah 4: Verifikasi Layanan
 
 ```bash
-# Check all containers are running
+# Cek semua container berjalan
 docker-compose ps
 
-# Check Uptime Kuma
+# Cek Uptime Kuma
 curl http://localhost:3001
 
-# Check Grafana
+# Cek Grafana
 curl http://localhost:3000/api/health
 
-# Check Prometheus
+# Cek Prometheus
 curl http://localhost:9090/-/healthy
 
-# Check Node Exporter
+# Cek Node Exporter
 curl http://localhost:9100/metrics
 ```
 
-### Step 5: Access Dashboards
+### Langkah 5: Akses Dashboard
 
-| Service | URL | Default Credentials |
-|---------|-----|---------------------|
-| Uptime Kuma | http://YOUR_IP:3001 | Create on first visit |
-| Grafana | http://YOUR_IP:3000 | admin / admin |
-| Prometheus | http://YOUR_IP:9090 | No auth |
+| Layanan | URL | Kredensial Default |
+|---------|-----|-------------------|
+| Uptime Kuma | http://IP_ANDA:3001 | Buat saat kunjungan pertama |
+| Grafana | http://IP_ANDA:3000 | admin / admin |
+| Prometheus | http://IP_ANDA:9090 | Tanpa autentikasi |
 
-## Configuration
+## Konfigurasi
 
 ### Uptime Kuma
 
-#### Add Website Monitor
+#### Tambah Monitor Website
 
-1. Open http://YOUR_IP:3001
-2. Create admin account
-3. Click "Add New Monitor"
-4. Configure:
-   - **Monitor Type**: HTTP(s)
-   - **Name**: My Website
-   - **URL**: https://yourwebsite.com
-   - **Interval**: 60 seconds
-5. Click "Save"
+1. Buka http://IP_ANDA:3001
+2. Buat akun admin
+3. Klik "Add New Monitor"
+4. Konfigurasi:
+   - **Tipe Monitor**: HTTP(s)
+   - **Nama**: Website Saya
+   - **URL**: https://websiteanda.com
+   - **Interval**: 60 detik
+5. Klik "Save"
 
-#### Add Telegram Notification
+#### Tambah Notifikasi Telegram
 
-1. Go to Settings → Notifications
-2. Click "Setup Notification"
-3. Select "Telegram"
-4. Configure:
-   - **Bot Token**: From @BotFather
-   - **Chat ID**: From @userinfobot
-5. Click "Save"
+1. Buka Settings → Notifications
+2. Klik "Setup Notification"
+3. Pilih "Telegram"
+4. Konfigurasi:
+   - **Bot Token**: Dari @BotFather
+   - **Chat ID**: Dari @userinfobot
+5. Klik "Save"
 
 ### Grafana
 
-#### Add Prometheus Data Source
+#### Tambah Sumber Data Prometheus
 
-1. Open http://YOUR_IP:3000
-2. Login with admin/admin
-3. Go to Configuration → Data Sources
-4. Click "Add data source"
-5. Select "Prometheus"
-6. Configure:
+1. Buka http://IP_ANDA:3000
+2. Login dengan admin/admin
+3. Buka Configuration → Data Sources
+4. Klik "Add data source"
+5. Pilih "Prometheus"
+6. Konfigurasi:
    - **URL**: http://prometheus:9090
-   - **Access**: Server (default)
-7. Click "Save & Test"
+   - **Akses**: Server (default)
+7. Klik "Save & Test"
 
 #### Import Dashboard
 
-1. Go to Dashboards → Import
-2. Enter dashboard ID: **1860** (Node Exporter Full)
-3. Select Prometheus data source
-4. Click "Import"
+1. Buka Dashboards → Import
+2. Masukkan ID dashboard: **1860** (Node Exporter Full)
+3. Pilih sumber data Prometheus
+4. Klik "Import"
 
 ### Prometheus
 
-#### Edit Configuration
+#### Edit Konfigurasi
 
 Edit `prometheus/prometheus.yml`:
 
@@ -161,11 +161,11 @@ scrape_configs:
     static_configs:
       - targets:
         - 'node-exporter:9100'
-        - 'YOUR_SERVER_2:9100'
-        - 'YOUR_SERVER_3:9100'
+        - 'SERVER_2:9100'
+        - 'SERVER_3:9100'
 ```
 
-#### Add Alert Rules
+#### Tambah Aturan Alert
 
 Edit `prometheus/alert_rules.yml`:
 
@@ -179,129 +179,129 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: High CPU usage on {{ $labels.instance }}
+          summary: Penggunaan CPU tinggi pada {{ $labels.instance }}
 ```
 
-## Verification Checklist
+## Checklist Verifikasi
 
-After deployment, verify:
+Setelah deployment, verifikasi:
 
-- [ ] All containers are running
-- [ ] Uptime Kuma is accessible
-- [ ] Grafana is accessible
-- [ ] Prometheus is collecting metrics
-- [ ] Node Exporter is reporting system metrics
-- [ ] Telegram notifications are working
-- [ ] Dashboards are showing data
+- [ ] Semua container berjalan
+- [ ] Uptime Kuma dapat diakses
+- [ ] Grafana dapat diakses
+- [ ] Prometheus mengumpulkan metrik
+- [ ] Node Exporter melaporkan metrik sistem
+- [ ] Notifikasi Telegram berfungsi
+- [ ] Dashboard menampilkan data
 
-## Troubleshooting
+## Pemecahan Masalah
 
-### Issue: Container Not Starting
+### Masalah: Container Tidak Berjalan
 
-**Symptoms**: Container exits immediately after starting
+**Gejala**: Container langsung keluar setelah dimulai
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check container logs
+# Cek log container
 docker-compose logs -f
 
-# Check specific service
+# Cek layanan spesifik
 docker-compose logs -f uptime-kuma
 
-# Restart service
+# Restart layanan
 docker-compose restart uptime-kuma
 ```
 
-### Issue: Port Already in Use
+### Masalah: Port Sudah Digunakan
 
-**Symptoms**: Error "port is already allocated"
+**Gejala**: Error "port is already allocated"
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check what's using the port
+# Cek apa yang menggunakan port
 sudo netstat -tlnp | grep :3001
 
-# Stop conflicting service
-sudo systemctl stop conflicting-service
+# Hentikan layanan yang konflik
+sudo systemctl stop layanan-konflik
 
-# Or change port in docker-compose.yml
+# Atau ubah port di docker-compose.yml
 ports:
-  - "3002:3001"  # Change host port
+  - "3002:3001"  # Ubah port host
 ```
 
-### Issue: Permission Denied
+### Masalah: Permission Ditolak
 
-**Symptoms**: Container can't write to data directory
+**Gejala**: Container tidak dapat menulis ke direktori data
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Fix permissions
+# Perbaiki permission
 sudo chown -R 1000:1000 monitoring/uptime-kuma/data
 sudo chown -R 472:472 monitoring/grafana/data
 sudo chown -R 65534:65534 monitoring/prometheus/data
 ```
 
-### Issue: Grafana Can't Connect to Prometheus
+### Masalah: Grafana Tidak Dapat Terhubung ke Prometheus
 
-**Symptoms**: "Bad Gateway" or "Connection refused" in Grafana
+**Gejala**: "Bad Gateway" atau "Connection refused" di Grafana
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check if Prometheus is running
+# Cek apakah Prometheus berjalan
 docker-compose ps prometheus
 
-# Check Prometheus logs
+# Cek log Prometheus
 docker-compose logs prometheus
 
-# Test connection from Grafana container
+# Tes koneksi dari container Grafana
 docker exec grafana wget -qO- http://prometheus:9090/-/healthy
 ```
 
-## Maintenance
+## Pemeliharaan
 
-### Regular Tasks
+### Tugas Rutin
 
-1. **Update images**: `docker-compose pull && docker-compose up -d`
-2. **Check logs**: `docker-compose logs -f`
-3. **Monitor disk space**: `df -h`
-4. **Backup data**: See backup section
+1. **Update image**: `docker-compose pull && docker-compose up -d`
+2. **Cek log**: `docker-compose logs -f`
+3. **Monitor ruang disk**: `df -h`
+4. **Backup data**: Lihat bagian backup
 
-### Backup Strategy
+### Strategi Backup
 
 ```bash
-# Backup Uptime Kuma data
+# Backup data Uptime Kuma
 tar -czf uptime-kuma-backup.tar.gz monitoring/uptime-kuma/data
 
-# Backup Grafana data
+# Backup data Grafana
 tar -czf grafana-backup.tar.gz monitoring/grafana/data
 
-# Backup Prometheus data
+# Backup data Prometheus
 tar -czf prometheus-backup.tar.gz monitoring/prometheus/data
 
-# Backup to remote location
+# Backup ke lokasi remote
 rsync -avz monitoring/ user@backup-server:/backups/monitoring/
 ```
 
 ### Update Stack
 
 ```bash
-# Pull latest images
+# Pull image terbaru
 docker-compose pull
 
-# Restart services
+# Restart layanan
 docker-compose up -d
 
-# Check for updates
+# Cek update
 docker-compose images
 ```
 
-## Resources
+## Sumber Daya
 
-- [Uptime Kuma Documentation](https://uptime.kuma.pet/docs/)
-- [Grafana Documentation](https://grafana.com/docs/)
-- [Prometheus Documentation](https://prometheus.io/docs/)
-- [Node Exporter Documentation](https://prometheus.io/docs/guides/node-exporter/)
+- [Dokumentasi Uptime Kuma](https://uptime.kuma.pet/docs/)
+- [Dokumentasi Grafana](https://grafana.com/docs/)
+- [Dokumentasi Prometheus](https://prometheus.io/docs/)
+- [Dokumentasi Node Exporter](https://prometheus.io/docs/guides/node-exporter/)

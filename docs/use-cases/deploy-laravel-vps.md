@@ -1,33 +1,33 @@
-# Deploy Laravel to VPS
+# Deploy Laravel ke VPS
 
-Complete guide to deploy a Laravel application to Ubuntu 22.04 VPS.
+Panduan lengkap untuk deploy aplikasi Laravel ke VPS Ubuntu 22.04.
 
-## Overview
+## Ringkasan
 
-This guide walks you through deploying a Laravel application to a VPS using Ansible. The deployment includes:
+Panduan ini akan memandu Anda untuk deploy aplikasi Laravel ke VPS menggunakan Ansible. Deployment mencakup:
 
-- Nginx web server
-- PHP 8.2 with all required extensions
-- MySQL database
+- Server web Nginx
+- PHP 8.2 dengan semua ekstensi yang dibutuhkan
+- Database MySQL
 - SSL/TLS via Let's Encrypt
-- Firewall configuration
-- Supervisor for queue workers
+- Konfigurasi firewall
+- Supervisor untuk queue workers
 
-## Architecture
+## Arsitektur
 
 ```
 ┌─────────────────┐
-│   User/Browser   │
+│  User/Browser   │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│      Nginx      │ ← SSL termination
+│      Nginx      │ ← Terminasi SSL
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│    PHP 8.2      │ ← Laravel application
+│    PHP 8.2      │ ← Aplikasi Laravel
 └────────┬────────┘
          │
          ▼
@@ -36,37 +36,37 @@ This guide walks you through deploying a Laravel application to a VPS using Ansi
 └─────────────────┘
 ```
 
-## Requirements
+## Kebutuhan
 
-### Server Requirements
+### Kebutuhan Server
 
 - **OS**: Ubuntu 22.04 LTS
-- **RAM**: Minimum 1GB (2GB recommended)
-- **Storage**: Minimum 20GB
-- **Access**: SSH with sudo privileges
+- **RAM**: Minimal 1GB (2GB direkomendasikan)
+- **Penyimpanan**: Minimal 20GB
+- **Akses**: SSH dengan hak sudo
 
-### Local Requirements
+### Kebutuhan Lokal
 
-- **Git**: For cloning repository
-- **Ansible**: 2.9+ (for running playbooks)
-- **SSH Key**: For connecting to server
+- **Git**: Untuk clone repository
+- **Ansible**: 2.9+ (untuk menjalankan playbook)
+- **SSH Key**: Untuk koneksi ke server
 
-### Application Requirements
+### Kebutuhan Aplikasi
 
-- **Laravel**: 8.x or higher
-- **PHP Extensions**: mbstring, xml, curl, zip, gd, bcmath, intl
+- **Laravel**: 8.x atau lebih baru
+- **Ekstensi PHP**: mbstring, xml, curl, zip, gd, bcmath, intl
 - **Database**: MySQL 8.0
 
-## Installation
+## Instalasi
 
-### Step 1: Clone Repository
+### Langkah 1: Clone Repository
 
 ```bash
 git clone https://github.com/ujgsp/OpenOpsToolkit.git
 cd OpenOpsToolkit
 ```
 
-### Step 2: Configure Inventory
+### Langkah 2: Konfigurasi Inventory
 
 Edit `ansible/inventories/production/hosts.yml`:
 
@@ -74,198 +74,198 @@ Edit `ansible/inventories/production/hosts.yml`:
 webservers:
   hosts:
     web1:
-      ansible_host: YOUR_SERVER_IP
+      ansible_host: IP_SERVER_ANDA
       ansible_user: ubuntu
       ansible_ssh_private_key_file: ~/.ssh/id_rsa
 ```
 
-### Step 3: Configure Application
+### Langkah 3: Konfigurasi Aplikasi
 
 Edit `ansible/inventories/production/group_vars/all.yml`:
 
 ```yaml
-# Application
+# Aplikasi
 app_name: myapp
 app_env: production
-app_url: https://yourdomain.com
-app_domain: yourdomain.com
+app_url: https://domainanda.com
+app_domain: domainanda.com
 
 # Database
 db_name: laravel_db
 db_user: laravel
-db_password: your_secure_password
+db_password: password_anda_yang_aman
 
 # SSL
 ssl_enabled: true
-ssl_email: your@email.com
+ssl_email: email@anda.com
 ```
 
-### Step 4: Deploy
+### Langkah 4: Deploy
 
 ```bash
 ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
 ```
 
-### Step 5: Verify Deployment
+### Langkah 5: Verifikasi Deployment
 
 ```bash
-# Check services
-ssh ubuntu@YOUR_SERVER_IP "systemctl status nginx"
-ssh ubuntu@YOUR_SERVER_IP "systemctl status php8.2-fpm"
-ssh ubuntu@YOUR_SERVER_IP "systemctl status mysql"
+# Cek layanan
+ssh ubuntu@IP_SERVER_ANDA "systemctl status nginx"
+ssh ubuntu@IP_SERVER_ANDA "systemctl status php8.2-fpm"
+ssh ubuntu@IP_SERVER_ANDA "systemctl status mysql"
 
-# Test HTTP response
-curl -I http://YOUR_SERVER_IP
+# Tes HTTP response
+curl -I http://IP_SERVER_ANDA
 
-# Test HTTPS (if SSL enabled)
-curl -I https://yourdomain.com
+# Tes HTTPS (jika SSL diaktifkan)
+curl -I https://domainanda.com
 ```
 
-## Verification Checklist
+## Checklist Verifikasi
 
-After deployment, verify:
+Setelah deployment, verifikasi:
 
-- [ ] Nginx is running and serving content
-- [ ] PHP-FPM is processing PHP files
-- [ ] MySQL is accepting connections
-- [ ] Application is accessible via HTTP
-- [ ] SSL certificate is valid (if enabled)
-- [ ] Firewall allows ports 22, 80, 443
-- [ ] Storage directory is writable
-- [ ] Queue workers are running (if configured)
+- [ ] Nginx berjalan dan menyajikan konten
+- [ ] PHP-FPM memproses file PHP
+- [ ] MySQL menerima koneksi
+- [ ] Aplikasi dapat diakses via HTTP
+- [ ] Sertifikat SSL valid (jika diaktifkan)
+- [ ] Firewall mengizinkan port 22, 80, 443
+- [ ] Direktori storage dapat ditulis
+- [ ] Queue workers berjalan (jika dikonfigurasi)
 
-## Troubleshooting
+## Pemecahan Masalah
 
-### Issue: 502 Bad Gateway
+### Masalah: 502 Bad Gateway
 
-**Symptoms**: Browser shows "502 Bad Gateway"
+**Gejala**: Browser menampilkan "502 Bad Gateway"
 
-**Cause**: PHP-FPM is not running or not configured correctly
+**Penyebab**: PHP-FPM tidak berjalan atau tidak dikonfigurasi dengan benar
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check PHP-FPM status
-ssh ubuntu@YOUR_SERVER_IP "systemctl status php8.2-fpm"
+# Cek status PHP-FPM
+ssh ubuntu@IP_SERVER_ANDA "systemctl status php8.2-fpm"
 
-# Check PHP-FPM logs
-ssh ubuntu@YOUR_SERVER_IP "tail -f /var/log/php8.2-fpm.log"
+# Cek log PHP-FPM
+ssh ubuntu@IP_SERVER_ANDA "tail -f /var/log/php8.2-fpm.log"
 
 # Restart PHP-FPM
-ssh ubuntu@YOUR_SERVER_IP "sudo systemctl restart php8.2-fpm"
+ssh ubuntu@IP_SERVER_ANDA "sudo systemctl restart php8.2-fpm"
 ```
 
-### Issue: Database Connection Refused
+### Masalah: Koneksi Database Ditolak
 
-**Symptoms**: Laravel shows "Connection refused" error
+**Gejala**: Laravel menampilkan error "Connection refused"
 
-**Cause**: MySQL is not running or credentials are wrong
+**Penyebab**: MySQL tidak berjalan atau kredensial salah
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check MySQL status
-ssh ubuntu@YOUR_SERVER_IP "systemctl status mysql"
+# Cek status MySQL
+ssh ubuntu@IP_SERVER_ANDA "systemctl status mysql"
 
-# Check MySQL logs
-ssh ubuntu@YOUR_SERVER_IP "tail -f /var/log/mysql/error.log"
+# Cek log MySQL
+ssh ubuntu@IP_SERVER_ANDA "tail -f /var/log/mysql/error.log"
 
-# Verify credentials
-ssh ubuntu@YOUR_SERVER_IP "mysql -u laravel -p -e 'SHOW DATABASES;'"
+# Verifikasi kredensial
+ssh ubuntu@IP_SERVER_ANDA "mysql -u laravel -p -e 'SHOW DATABASES;'"
 ```
 
-### Issue: Permission Denied
+### Masalah: Permission Ditolak
 
-**Symptoms**: Laravel shows permission errors in storage/logs
+**Gejala**: Laravel menampilkan error permission di storage/logs
 
-**Cause**: Incorrect file permissions
+**Penyebab**: Permission file salah
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Fix storage permissions
-ssh ubuntu@YOUR_SERVER_IP "sudo chown -R www-data:www-data /var/www/myapp/storage"
-ssh ubuntu@YOUR_SERVER_IP "sudo chmod -R 775 /var/www/myapp/storage"
+# Perbaiki permission storage
+ssh ubuntu@IP_SERVER_ANDA "sudo chown -R www-data:www-data /var/www/myapp/storage"
+ssh ubuntu@IP_SERVER_ANDA "sudo chmod -R 775 /var/www/myapp/storage"
 
-# Fix bootstrap/cache permissions
-ssh ubuntu@YOUR_SERVER_IP "sudo chown -R www-data:www-data /var/www/myapp/bootstrap/cache"
-ssh ubuntu@YOUR_SERVER_IP "sudo chmod -R 775 /var/www/myapp/bootstrap/cache"
+# Perbaiki permission bootstrap/cache
+ssh ubuntu@IP_SERVER_ANDA "sudo chown -R www-data:www-data /var/www/myapp/bootstrap/cache"
+ssh ubuntu@IP_SERVER_ANDA "sudo chmod -R 775 /var/www/myapp/bootstrap/cache"
 ```
 
-### Issue: SSL Certificate Not Working
+### Masalah: Sertifikat SSL Tidak Berfungsi
 
-**Symptoms**: Browser shows "Not Secure" or certificate error
+**Gejala**: Browser menampilkan "Not Secure" atau error sertifikat
 
-**Cause**: Let's Encrypt certificate not issued or expired
+**Penyebab**: Sertifikat Let's Encrypt belum diterbitkan atau sudah kedaluwarsa
 
-**Solution**:
+**Solusi**:
 
 ```bash
-# Check certificate status
-ssh ubuntu@YOUR_SERVER_IP "sudo certbot certificates"
+# Cek status sertifikat
+ssh ubuntu@IP_SERVER_ANDA "sudo certbot certificates"
 
-# Renew certificate
-ssh ubuntu@YOUR_SERVER_IP "sudo certbot renew"
+# Perbarui sertifikat
+ssh ubuntu@IP_SERVER_ANDA "sudo certbot renew"
 
-# Check Nginx SSL configuration
-ssh ubuntu@YOUR_SERVER_IP "sudo nginx -t"
+# Cek konfigurasi SSL Nginx
+ssh ubuntu@IP_SERVER_ANDA "sudo nginx -t"
 ```
 
-## Security Notes
+## Catatan Keamanan
 
 ### Firewall
 
-The deployment configures UFW with:
+Deployment mengkonfigurasi UFW dengan:
 
-- Port 22 (SSH) - Open
-- Port 80 (HTTP) - Open
-- Port 443 (HTTPS) - Open
-- All other ports - Closed
+- Port 22 (SSH) - Terbuka
+- Port 80 (HTTP) - Terbuka
+- Port 443 (HTTPS) - Terbuka
+- Semua port lainnya - Tertutup
 
 ### SSL/TLS
 
-- Uses Let's Encrypt for free SSL certificates
-- Automatic renewal configured via cron
-- HSTS headers enabled
+- Menggunakan Let's Encrypt untuk sertifikat SSL gratis
+- Perpanjangan otomatis dikonfigurasi via cron
+- Header HSTS diaktifkan
 
-### File Permissions
+### Permission File
 
-- Application files owned by www-data
-- Storage directory writable by web server
-- Sensitive files not accessible via web
+- File aplikasi dimiliki oleh www-data
+- Direktori storage dapat ditulis oleh web server
+- File sensitif tidak dapat diakses via web
 
 ### Database
 
-- MySQL root password secured
-- Application user has limited privileges
-- Remote access disabled by default
+- Password root MySQL diamankan
+- Pengguna aplikasi memiliki hak terbatas
+- Akses remote dinonaktifkan secara default
 
-## Maintenance
+## Pemeliharaan
 
-### Regular Tasks
+### Tugas Rutin
 
-1. **Update packages**: `sudo apt update && sudo apt upgrade`
-2. **Check logs**: `tail -f /var/log/nginx/error.log`
-3. **Monitor disk space**: `df -h`
+1. **Update paket**: `sudo apt update && sudo apt upgrade`
+2. **Cek log**: `tail -f /var/log/nginx/error.log`
+3. **Monitor ruang disk**: `df -h`
 4. **Backup database**: `mysqldump -u root -p laravel_db > backup.sql`
 
-### Backup Strategy
+### Strategi Backup
 
 ```bash
 # Backup database
 mysqldump -u root -p laravel_db > backup_$(date +%Y%m%d).sql
 
-# Backup application files
+# Backup file aplikasi
 tar -czf app_backup_$(date +%Y%m%d).tar.gz /var/www/myapp
 
-# Backup to remote location
+# Backup ke lokasi remote
 rsync -avz /var/www/myapp user@backup-server:/backups/
 ```
 
-## Resources
+## Sumber Daya
 
-- [Laravel Documentation](https://laravel.com/docs)
-- [Nginx Documentation](https://nginx.org/en/docs/)
-- [PHP Documentation](https://www.php.net/docs.php)
-- [MySQL Documentation](https://dev.mysql.com/doc/)
-- [Let's Encrypt Documentation](https://letsencrypt.org/docs/)
+- [Dokumentasi Laravel](https://laravel.com/docs)
+- [Dokumentasi Nginx](https://nginx.org/en/docs/)
+- [Dokumentasi PHP](https://www.php.net/docs.php)
+- [Dokumentasi MySQL](https://dev.mysql.com/doc/)
+- [Dokumentasi Let's Encrypt](https://letsencrypt.org/docs/)
