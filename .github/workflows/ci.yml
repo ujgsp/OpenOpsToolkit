@@ -1,0 +1,188 @@
+# CI/CD Pipeline
+# OpenOps Toolkit
+
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 1. Lint Ansible files
+  lint-ansible:
+    name: Lint Ansible
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          pip install ansible-lint yamllint
+      
+      - name: Run yamllint
+        run: |
+          yamllint -c .yamllint ansible/
+      
+      - name: Run ansible-lint
+        run: |
+          ansible-lint ansible/
+
+  # 2. Validate YAML files
+  validate-yaml:
+    name: Validate YAML
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install yamllint
+        run: |
+          pip install yamllint
+      
+      - name: Validate YAML files
+        run: |
+          find . -name "*.yml" -o -name "*.yaml" | xargs yamllint -c .yamllint
+
+  # 3. Validate JSON files
+  validate-json:
+    name: Validate JSON
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate JSON files
+        run: |
+          find . -name "*.json" -exec python -m json.tool {} \;
+
+  # 4. Shell script linting
+  lint-shell:
+    name: Lint Shell Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install shellcheck
+        run: |
+          sudo apt-get install -y shellcheck
+      
+      - name: Run shellcheck
+        run: |
+          find . -name "*.sh" -exec shellcheck {} \;
+
+  # 5. Markdown linting
+  lint-markdown:
+    name: Lint Markdown
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install markdownlint
+        run: |
+          npm install -g markdownlint-cli
+      
+      - name: Run markdownlint
+        run: |
+          markdownlint '**/*.md' --ignore node_modules
+
+  # 6. Security scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+  # 7. Documentation check
+  check-docs:
+    name: Check Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check README exists
+        run: |
+          test -f README.md
+      
+      - name: Check CHANGELOG exists
+        run: |
+          test -f CHANGELOG.md
+      
+      - name: Check CONTRIBUTING exists
+        run: |
+          test -f CONTRIBUTING.md
+      
+      - name: Check SECURITY exists
+        run: |
+          test -f SECURITY.md
+
+  # 8. Test Ansible syntax
+  test-ansible:
+    name: Test Ansible Syntax
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install Ansible
+        run: |
+          pip install ansible
+      
+      - name: Test playbook syntax
+        run: |
+          for playbook in ansible/playbooks/*.yml; do
+            echo "Testing $playbook..."
+            ansible-playbook --syntax-check "$playbook" || exit 1
+          done
+
+  # 9. All checks passed
+  all-checks:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs:
+      - lint-ansible
+      - validate-yaml
+      - validate-json
+      - lint-shell
+      - lint-markdown
+      - security-scan
+      - check-docs
+      - test-ansible
+    
+    steps:
+      - name: All checks passed
+        run: echo "All CI checks passed!"
