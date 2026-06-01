@@ -1,0 +1,17 @@
+---
+# Docker Role - Handlers
+
+- name: restart docker
+  systemd:
+    name: docker
+    state: restarted
+
+- name: stop docker
+  systemd:
+    name: docker
+    state: stopped
+
+- name: start docker
+  systemd:
+    name: docker
+    state: started

@@ -1,0 +1,22 @@
+---
+# Vaultwarden Role - Metadata
+
+galaxy_info:
+  author: OpenOps Toolkit Contributors
+  description: Deploy Vaultwarden password manager on Ubuntu 22.04
+  company: OpenOps Toolkit
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy (22.04)
+  galaxy_tags:
+    - vaultwarden
+    - bitwarden
+    - password
+    - security
+    - docker
+    - ubuntu
+
+dependencies: []

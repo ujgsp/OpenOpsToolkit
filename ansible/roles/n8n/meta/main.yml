@@ -1,0 +1,22 @@
+---
+# n8n Role - Metadata
+
+galaxy_info:
+  author: OpenOps Toolkit Contributors
+  description: Deploy n8n workflow automation on Ubuntu 22.04
+  company: OpenOps Toolkit
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy (22.04)
+  galaxy_tags:
+    - n8n
+    - automation
+    - workflow
+    - docker
+    - webhooks
+    - ubuntu
+
+dependencies: []

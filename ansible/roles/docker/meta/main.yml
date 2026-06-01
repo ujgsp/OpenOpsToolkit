@@ -1,0 +1,20 @@
+---
+# Docker Role - Metadata
+
+galaxy_info:
+  author: OpenOps Toolkit Contributors
+  description: Install and configure Docker on Ubuntu 22.04
+  company: OpenOps Toolkit
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy (22.04)
+  galaxy_tags:
+    - docker
+    - containers
+    - devops
+    - ubuntu
+
+dependencies: []

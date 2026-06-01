@@ -1,0 +1,81 @@
+# n8n - Nginx Configuration
+# Managed by Ansible
+
+server {
+    listen 80;
+    listen [::]:80;
+    
+    server_name {{ n8n_domain }};
+    
+    location / {
+        proxy_pass http://localhost:{{ n8n_port }};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_read_timeout 86400;
+    }
+    
+    # Webhook endpoint
+    location /webhook/ {
+        proxy_pass http://localhost:{{ n8n_port }}/webhook/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # REST API endpoint
+    location /rest/ {
+        proxy_pass http://localhost:{{ n8n_port }}/rest/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+{% if n8n_ssl_enabled %}
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    
+    server_name {{ n8n_domain }};
+    
+    ssl_certificate /etc/letsencrypt/live/{{ n8n_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ n8n_domain }}/privkey.pem;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+    
+    location / {
+        proxy_pass http://localhost:{{ n8n_port }};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+    }
+    
+    location /webhook/ {
+        proxy_pass http://localhost:{{ n8n_port }}/webhook/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+{% endif %}

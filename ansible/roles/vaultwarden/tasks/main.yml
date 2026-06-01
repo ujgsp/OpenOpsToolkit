@@ -1,0 +1,154 @@
+---
+# Vaultwarden Role - Main Tasks
+
+- name: Include variables
+  include_vars: main.yml
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install system dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+      - unzip
+      - git
+    state: present
+
+- name: Create Vaultwarden directory
+  file:
+    path: "{{ vaultwarden_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create Vaultwarden subdirectories
+  file:
+    path: "{{ vaultwarden_data_dir }}/{{ item }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: '0755'
+  loop:
+    - data
+    - config
+
+- name: Create Docker Compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ vaultwarden_data_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create environment file
+  template:
+    src: env.j2
+    dest: "{{ vaultwarden_data_dir }}/.env"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Start Vaultwarden with Docker Compose
+  shell: |
+    cd {{ vaultwarden_data_dir }}
+    docker compose up -d
+  register: docker_compose_result
+
+- name: Wait for Vaultwarden to be ready
+  uri:
+    url: "http://localhost:{{ vaultwarden_port }}"
+    method: GET
+    status_code: 200
+  register: vaultwarden_health
+  retries: 30
+  delay: 5
+  until: vaultwarden_health.status == 200
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Configure Nginx
+  template:
+    src: nginx.conf.j2
+    dest: "/etc/nginx/sites-available/vaultwarden"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+
+- name: Enable Nginx site
+  file:
+    src: "/etc/nginx/sites-available/vaultwarden"
+    dest: "/etc/nginx/sites-enabled/vaultwarden"
+    state: link
+  notify: restart nginx
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+
+- name: Start and enable Nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Configure firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - '22'
+    - '80'
+    - '443'
+
+- name: Enable firewall
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Install Certbot for SSL
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+  when: vaultwarden_ssl_enabled | bool
+
+- name: Obtain SSL certificate
+  shell: |
+    certbot --nginx -d {{ vaultwarden_domain }} --non-interactive --agree-tos -m {{ vaultwarden_ssl_email }}
+  when: vaultwarden_ssl_enabled | bool
+
+- name: Display deployment information
+  debug:
+    msg: |
+      Vaultwarden deployed successfully!
+      
+      URL: http{% if vaultwarden_ssl_enabled %}s{% endif %}://{{ vaultwarden_domain }}
+      Admin Panel: http{% if vaultwarden_ssl_enabled %}s{% endif %}://{{ vaultwarden_domain }}/admin
+      Admin Token: {{ vaultwarden_admin_token }}
+      Data Directory: {{ vaultwarden_data_dir }}
+      
+      Docker Status:
+      - Container: docker ps | grep vaultwarden
+      - Logs: docker logs vaultwarden
+      
+      Management:
+      - Start: cd {{ vaultwarden_data_dir }} && docker compose up -d
+      - Stop: cd {{ vaultwarden_data_dir }} && docker compose down
+      - Restart: cd {{ vaultwarden_data_dir }} && docker compose restart

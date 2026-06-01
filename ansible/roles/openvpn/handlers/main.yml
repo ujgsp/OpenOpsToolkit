@@ -1,0 +1,17 @@
+---
+# OpenVPN Role - Handlers
+
+- name: restart openvpn
+  systemd:
+    name: openvpn
+    state: restarted
+
+- name: stop openvpn
+  systemd:
+    name: openvpn
+    state: stopped
+
+- name: start openvpn
+  systemd:
+    name: openvpn
+    state: started

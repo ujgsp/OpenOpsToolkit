@@ -1,0 +1,131 @@
+{
+  "name": "Website Down Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const urls = [\n  'https://example.com',\n  'https://api.example.com/health',\n  'https://admin.example.com'\n];\n\nconst results = [];\n\nfor (const url of urls) {\n  try {\n    const startTime = Date.now();\n    const response = await this.helpers.httpRequest({\n      url: url,\n      method: 'GET',\n      returnFullResponse: true,\n      timeout: 10000\n    });\n    \n    const responseTime = Date.now() - startTime;\n    \n    results.push({\n      url: url,\n      status: response.statusCode,\n      responseTime: responseTime,\n      isDown: false,\n      needsAlert: response.statusCode >= 400 || responseTime > 5000\n    });\n  } catch (error) {\n    results.push({\n      url: url,\n      status: 0,\n      responseTime: 0,\n      isDown: true,\n      error: error.message,\n      needsAlert: true\n    });\n  }\n}\n\nreturn results.map(item => ({ json: item }));"
+      },
+      "id": "check-websites",
+      "name": "Check Websites",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.needsAlert }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "filter-alerts",
+      "name": "Filter Alerts",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "=🚨 Website Down Alert\n\nURL: {{ $json.url }}\nStatus: {{ $json.status }}\nResponse Time: {{ $json.responseTime }}ms\n\n{% if $json.isDown %}❌ Website is DOWN!{% else %}⚠️ Website is slow or returning errors{% endif %}\n\n{% if $json.error %}Error: {{ $json.error }}{% endif %}\n\nPlease check the website immediately.",
+        "additionalFields": {}
+      },
+      "id": "telegram",
+      "name": "Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-credentials",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Summary of all checks\nconst items = $input.all();\nconst summary = {\n  total: items.length,\n  down: items.filter(i => i.json.isDown).length,\n  slow: items.filter(i => !i.json.isDown && i.json.needsAlert).length,\n  healthy: items.filter(i => !i.json.needsAlert).length\n};\n\nreturn [{ json: summary }];"
+      },
+      "id": "summary",
+      "name": "Create Summary",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Websites",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Websites": {
+      "main": [
+        [
+          {
+            "node": "Filter Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Alerts": {
+      "main": [
+        [
+          {
+            "node": "Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Alert": {
+      "main": [
+        [
+          {
+            "node": "Create Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "website-monitor"
+  }
+}

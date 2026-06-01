@@ -1,0 +1,107 @@
+---
+# Docker Role - Main Tasks
+
+- name: Include variables
+  include_vars: main.yml
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install system dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+    state: present
+
+- name: Remove old Docker packages
+  apt:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+
+- name: Install Docker CE
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+
+- name: Start and enable Docker
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add users to docker group
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  loop: "{{ docker_users }}"
+
+- name: Create Docker Compose directory
+  file:
+    path: /usr/local/lib/docker/cli-plugins
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Install Docker Compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
+    dest: /usr/local/lib/docker/cli-plugins/docker-compose
+    mode: '0755'
+
+- name: Create Docker Compose symlink
+  file:
+    src: /usr/local/lib/docker/cli-plugins/docker-compose
+    dest: /usr/local/bin/docker-compose
+    state: link
+
+- name: Configure Docker daemon
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart docker
+
+- name: Display Docker information
+  debug:
+    msg: |
+      Docker installed successfully!
+      
+      Version: {{ docker_version }}
+      Compose: {{ docker_compose_version }}
+      Users: {{ docker_users | join(', ') }}
+      
+      Usage:
+      - docker --version
+      - docker compose version
+      - docker run hello-world

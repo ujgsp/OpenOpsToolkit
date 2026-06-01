@@ -1,0 +1,21 @@
+---
+# Docker Role - Variables
+
+# Docker packages
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-compose-plugin
+
+# Docker repository
+docker_repo_url: "https://download.docker.com/linux/ubuntu"
+docker_gpg_url: "https://download.docker.com/linux/ubuntu/gpg"
+
+# Docker Compose
+docker_compose_url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
+docker_compose_path: "/usr/local/lib/docker/cli-plugins/docker-compose"
+docker_compose_symlink: "/usr/local/bin/docker-compose"
+
+# Docker daemon
+docker_daemon_path: "/etc/docker/daemon.json"

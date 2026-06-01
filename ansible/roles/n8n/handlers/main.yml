@@ -1,0 +1,22 @@
+---
+# n8n Role - Handlers
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+
+- name: restart n8n
+  shell: |
+    cd {{ n8n_data_dir }}
+    docker compose restart n8n
+
+- name: stop n8n
+  shell: |
+    cd {{ n8n_data_dir }}
+    docker compose down
+
+- name: start n8n
+  shell: |
+    cd {{ n8n_data_dir }}
+    docker compose up -d

@@ -1,0 +1,21 @@
+---
+# Docker Role - Default Variables
+
+# Docker
+docker_edition: "ce"
+docker_version: "latest"
+docker_users: ["ubuntu"]
+
+# Docker Compose
+docker_compose_version: "2.20.0"
+
+# Registry
+docker_registry_mirror: ""
+
+# Storage
+docker_storage_driver: "overlay2"
+
+# Logging
+docker_log_driver: "json-file"
+docker_log_max_size: "10m"
+docker_log_max_file: "3"

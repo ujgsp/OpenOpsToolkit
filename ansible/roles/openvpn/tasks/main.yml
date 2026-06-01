@@ -1,0 +1,157 @@
+---
+# OpenVPN Role - Main Tasks
+
+- name: Include variables
+  include_vars: main.yml
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install OpenVPN and dependencies
+  apt:
+    name:
+      - openvpn
+      - easy-rsa
+      - iptables-persistent
+    state: present
+
+- name: Create EasyRSA directory
+  file:
+    path: "{{ easyrsa_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy EasyRSA
+  copy:
+    src: /usr/share/easy-rsa/
+    dest: "{{ easyrsa_dir }}"
+    remote_src: yes
+    owner: root
+    group: root
+
+- name: Initialize PKI
+  shell: |
+    cd {{ easyrsa_dir }}
+    ./easyrsa init-pki
+  args:
+    creates: "{{ easyrsa_dir }}/pki"
+
+- name: Build CA
+  shell: |
+    cd {{ easyrsa_dir }}
+    echo "OpenOps Toolkit" | ./easyrsa build-ca nopass
+  args:
+    creates: "{{ easyrsa_dir }}/pki/ca.crt"
+
+- name: Generate server key
+  shell: |
+    cd {{ easyrsa_dir }}
+    ./easyrsa gen-req server nopass
+    ./easyrsa sign-req server server
+  args:
+    creates: "{{ easyrsa_dir }}/pki/issued/server.crt"
+
+- name: Generate DH parameters
+  shell: |
+    cd {{ easyrsa_dir }}
+    ./easyrsa gen-dh
+  args:
+    creates: "{{ easyrsa_dir }}/pki/dh.pem"
+
+- name: Generate TLS auth key
+  shell: |
+    openvpn --genkey secret {{ openvpn_dir }}/ta.key
+  args:
+    creates: "{{ openvpn_dir }}/ta.key"
+
+- name: Copy certificates
+  copy:
+    src: "{{ easyrsa_dir }}/pki/{{ item.src }}"
+    dest: "{{ openvpn_dir }}/{{ item.dest }}"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0600'
+  loop:
+    - { src: "ca.crt", dest: "ca.crt" }
+    - { src: "issued/server.crt", dest: "server.crt" }
+    - { src: "private/server.key", dest: "server.key" }
+    - { src: "dh.pem", dest: "dh.pem" }
+
+- name: Generate client keys
+  shell: |
+    cd {{ easyrsa_dir }}
+    ./easyrsa gen-req {{ item }} nopass
+    ./easyrsa sign-req client {{ item }}
+  loop: "{{ openvpn_clients }}"
+  args:
+    creates: "{{ easyrsa_dir }}/pki/issued/{{ item }}.crt"
+
+- name: Copy client certificates
+  copy:
+    src: "{{ easyrsa_dir }}/pki/{{ item.src }}"
+    dest: "{{ openvpn_clients_dir }}/{{ item.client }}/{{ item.dest }}"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0600'
+  loop:
+    - { client: "{{ openvpn_clients[0] }}", src: "ca.crt", dest: "ca.crt" }
+    - { client: "{{ openvpn_clients[0] }}", src: "issued/{{ openvpn_clients[0] }}.crt", dest: "client.crt" }
+    - { client: "{{ openvpn_clients[0] }}", src: "private/{{ openvpn_clients[0] }}.key", dest: "client.key" }
+
+- name: Create server configuration
+  template:
+    src: server.conf.j2
+    dest: "{{ openvpn_dir }}/server.conf"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enable IP forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    reload: yes
+
+- name: Configure firewall
+  shell: |
+    iptables -t nat -A POSTROUTING -s {{ openvpn_network }}/{{ openvpn_netmask }} -o eth0 -j MASQUERADE
+    iptables-save > /etc/iptables/rules.v4
+
+- name: Start and enable OpenVPN
+  systemd:
+    name: openvpn
+    state: started
+    enabled: yes
+
+- name: Generate client configuration files
+  template:
+    src: client.ovpn.j2
+    dest: "{{ openvpn_clients_dir }}/{{ item }}/{{ item }}.ovpn"
+    owner: root
+    group: root
+    mode: '0600'
+  loop: "{{ openvpn_clients }}"
+
+- name: Display deployment information
+  debug:
+    msg: |
+      OpenVPN deployed successfully!
+      
+      Server: {{ openvpn_server_ip }}
+      Port: {{ openvpn_port }}
+      Protocol: {{ openvpn_protocol }}
+      Network: {{ openvpn_network }}
+      
+      Clients: {{ openvpn_clients | join(', ') }}
+      Client configs: {{ openvpn_clients_dir }}/
+      
+      Start service:
+      - systemctl start openvpn
+      - systemctl status openvpn

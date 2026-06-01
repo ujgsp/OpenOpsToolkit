@@ -1,0 +1,28 @@
+---
+# n8n Role - Variables
+
+# Docker Compose
+docker_compose_version: "2.20.0"
+
+# n8n
+n8n_image: "n8nio/n8n:{{ n8n_version }}"
+n8n_container_name: "n8n"
+
+# PostgreSQL
+postgres_image: "postgres:15"
+postgres_container_name: "n8n-postgres"
+
+# Nginx
+nginx_config_path: "/etc/nginx/sites-available/n8n"
+nginx_enabled_path: "/etc/nginx/sites-enabled/n8n"
+
+# Firewall
+firewall_ports:
+  - '22'
+  - '80'
+  - '443'
+
+# SSL
+certbot_packages:
+  - certbot
+  - python3-certbot-nginx

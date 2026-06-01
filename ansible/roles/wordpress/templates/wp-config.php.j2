@@ -1,0 +1,52 @@
+<?php
+/**
+ * WordPress Configuration File
+ * Managed by Ansible
+ */
+
+// Database settings
+define( 'DB_NAME', '{{ db_name }}' );
+define( 'DB_USER', '{{ db_user }}' );
+define( 'DB_PASSWORD', '{{ db_password }}' );
+define( 'DB_HOST', 'localhost' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
+
+// Authentication keys and salts
+define( 'AUTH_KEY',         '{{ wp_auth_key | default("put your unique phrase here") }}' );
+define( 'SECURE_AUTH_KEY',  '{{ wp_secure_auth_key | default("put your unique phrase here") }}' );
+define( 'LOGGED_IN_KEY',    '{{ wp_logged_in_key | default("put your unique phrase here") }}' );
+define( 'NONCE_KEY',        '{{ wp_nonce_key | default("put your unique phrase here") }}' );
+define( 'AUTH_SALT',        '{{ wp_auth_salt | default("put your unique phrase here") }}' );
+define( 'SECURE_AUTH_SALT', '{{ wp_secure_auth_salt | default("put your unique phrase here") }}' );
+define( 'LOGGED_IN_SALT',   '{{ wp_logged_in_salt | default("put your unique phrase here") }}' );
+define( 'NONCE_SALT',       '{{ wp_nonce_salt | default("put your unique phrase here") }}' );
+
+// Table prefix
+$table_prefix = '{{ wp_table_prefix }}';
+
+// Debug mode
+define( 'WP_DEBUG', false );
+
+// Absolute path to WordPress
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+// WordPress settings
+define( 'WP_HOME', 'http{% if ssl_enabled %}s{% endif %}://{{ domain }}' );
+define( 'WP_SITEURL', 'http{% if ssl_enabled %}s{% endif %}://{{ domain }}' );
+
+// Security
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'FORCE_SSL_ADMIN', {{ ssl_enabled | lower }} );
+
+// Performance
+define( 'WP_MEMORY_LIMIT', '{{ php_memory_limit }}' );
+define( 'WP_MAX_MEMORY_LIMIT', '{{ php_memory_limit }}' );
+
+// Auto updates
+define( 'WP_AUTO_UPDATE_CORE', true );
+
+// Require WordPress
+require_once ABSPATH . 'wp-settings.php';

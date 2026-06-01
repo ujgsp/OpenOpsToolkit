@@ -1,0 +1,24 @@
+---
+# OpenVPN Role - Variables
+
+# OpenVPN packages
+openvpn_packages:
+  - openvpn
+  - easy-rsa
+  - iptables-persistent
+
+# Certificate settings
+cert_country: "ID"
+cert_province: "Jakarta"
+cert_city: "Jakarta"
+cert_org: "OpenOps Toolkit"
+cert_email: "admin@example.com"
+cert_ou: "IT"
+
+# Firewall
+firewall_ports:
+  - '22'
+  - "{{ openvpn_port }}"
+
+# IP forwarding
+ip_forward_enabled: true

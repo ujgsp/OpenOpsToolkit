@@ -1,0 +1,30 @@
+---
+# OpenVPN Role - Default Variables
+
+# Server
+openvpn_server_ip: "your-server-ip"
+openvpn_port: 1194
+openvpn_protocol: "udp"
+
+# Network
+openvpn_network: "10.8.0.0"
+openvpn_netmask: "255.255.255.0"
+openvpn_dns: "8.8.8.8,8.8.4.4"
+
+# Certificate
+openvpn_key_size: 2048
+openvpn_cipher: "AES-256-GCM"
+openvpn_auth: "SHA256"
+
+# Clients
+openvpn_clients: ["client1"]
+openvpn_client_config_dir: "/etc/openvpn/ccd"
+
+# Advanced
+openvpn_duplicate_cn: false
+openvpn_max_clients: 100
+
+# Paths
+openvpn_dir: "/etc/openvpn"
+openvpn_clients_dir: "/etc/openvpn/clients"
+easyrsa_dir: "/etc/openvpn/easy-rsa"

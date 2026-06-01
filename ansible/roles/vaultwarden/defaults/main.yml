@@ -1,0 +1,36 @@
+---
+# Vaultwarden Role - Default Variables
+
+# Vaultwarden
+vaultwarden_version: "latest"
+vaultwarden_port: 8080
+vaultwarden_data_dir: "/opt/vaultwarden"
+vaultwarden_domain: "vault.example.com"
+
+# Admin
+vaultwarden_admin_token: "change_me"
+vaultwarden_admin_enabled: true
+
+# Features
+vaultwarden_signups_allowed: true
+vaultwarden_invitations_allowed: true
+vaultwarden_show_password_hint: true
+
+# Email
+vaultwarden_smtp_host: ""
+vaultwarden_smtp_port: 587
+vaultwarden_smtp_security: "starttls"
+vaultwarden_smtp_username: ""
+vaultwarden_smtp_password: ""
+vaultwarden_smtp_from: ""
+vaultwarden_smtp_from_name: "Vaultwarden"
+
+# SSL
+vaultwarden_ssl_enabled: true
+vaultwarden_ssl_email: "admin@example.com"
+
+# Websocket
+vaultwarden_websocket_enabled: true
+
+# Logging
+vaultwarden_log_level: "info"

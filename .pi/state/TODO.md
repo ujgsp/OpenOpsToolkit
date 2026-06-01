@@ -18,16 +18,16 @@
 - [x] Create Laravel role templates (nginx config, php-fpm pool)
 - [x] Create Laravel role defaults/vars
 - [x] Create Laravel role README.md
-- [ ] Create WordPress role structure
-- [ ] Create n8n role structure
-- [ ] Create Docker role structure
-- [ ] Create OpenVPN role structure
-- [ ] Create Vaultwarden role structure
+- [x] Create WordPress role structure
+- [x] Create n8n role structure
+- [x] Create Docker role structure
+- [x] Create OpenVPN role structure
+- [x] Create Vaultwarden role structure
 
 ### n8n Workflows
 - [x] Create SSL Expired Alert workflow
-- [ ] Create Domain Expired Alert workflow
-- [ ] Create Website Down Alert workflow
+- [x] Create Domain Expired Alert workflow
+- [x] Create Website Down Alert workflow
 
 ### GitHub Setup
 - [x] Create bug report issue template

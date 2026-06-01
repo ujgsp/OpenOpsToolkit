@@ -1,0 +1,22 @@
+---
+# Vaultwarden Role - Handlers
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+
+- name: restart vaultwarden
+  shell: |
+    cd {{ vaultwarden_data_dir }}
+    docker compose restart vaultwarden
+
+- name: stop vaultwarden
+  shell: |
+    cd {{ vaultwarden_data_dir }}
+    docker compose down
+
+- name: start vaultwarden
+  shell: |
+    cd {{ vaultwarden_data_dir }}
+    docker compose up -d

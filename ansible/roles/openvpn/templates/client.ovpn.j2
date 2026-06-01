@@ -1,0 +1,38 @@
+# OpenVPN Client Configuration
+# Managed by Ansible
+
+client
+dev tun
+proto {{ openvpn_protocol }}
+
+remote {{ openvpn_server_ip }} {{ openvpn_port }}
+
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+
+remote-cert-tls server
+
+cipher {{ openvpn_cipher }}
+auth {{ openvpn_auth }}
+
+key-direction 1
+
+verb 3
+
+<ca>
+{{ openvpn_ca_cert }}
+</ca>
+
+<cert>
+{{ openvpn_client_cert }}
+</cert>
+
+<key>
+{{ openvpn_client_key }}
+</key>
+
+<tls-auth>
+{{ openvpn_tls_auth }}
+</tls-auth>

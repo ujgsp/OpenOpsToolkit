@@ -1,0 +1,54 @@
+# OpenVPN Server Configuration
+# Managed by Ansible
+
+# Network
+port {{ openvpn_port }}
+proto {{ openvpn_protocol }}
+dev tun
+
+# Certificates
+ca ca.crt
+cert server.crt
+key server.key
+dh dh.pem
+
+# Network configuration
+server {{ openvpn_network }} {{ openvpn_netmask }}
+ifconfig-pool-persist ipp.txt
+
+# Push routes to clients
+push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS {{ openvpn_dns.split(',')[0] }}"
+push "dhcp-option DNS {{ openVPN_dns.split(',')[1] }}"
+
+# Keep connection alive
+keepalive 10 120
+
+# Cryptography
+cipher {{ openvpn_cipher }}
+auth {{ openvpn_auth }}
+tls-auth ta.key 0
+
+# Security
+user nobody
+group nogroup
+persist-key
+persist-tun
+
+# Logging
+status openvpn-status.log
+log-append /var/log/openvpn.log
+verb 3
+mute 20
+
+# Client configuration
+client-config-dir {{ openvpn_client_config_dir }}
+{% if openvpn_duplicate_cn %}
+duplicate-cn
+{% endif %}
+
+# Max clients
+max-clients {{ openvpn_max_clients }}
+
+# Management interface
+management localhost 7505
