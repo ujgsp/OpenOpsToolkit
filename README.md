@@ -82,22 +82,25 @@ cd OpenOpsToolkit
 ### 2. Deploy Laravel (Contoh)
 
 ```bash
+# Masuk ke direktori ansible
+cd ansible/
+
 # Edit inventory dengan IP server Anda
-nano ansible/inventories/production/hosts.yml
+nano inventories/production/hosts.yml
 
 # Buat vault file untuk credentials
-ansible-vault create ansible/inventories/production/group_vars/all/vault.yml
+ansible-vault create inventories/production/group_vars/all/vault.yml
 
 # Pilih webserver yang ingin digunakan:
 
 # Opsi 1: Nginx (paling umum)
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml --ask-vault-pass
+ansible-playbook -i inventories/production/hosts.yml playbooks/laravel-nginx.yml --ask-vault-pass
 
 # Opsi 2: Apache2
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml --ask-vault-pass
+ansible-playbook -i inventories/production/hosts.yml playbooks/laravel-apache.yml --ask-vault-pass
 
 # Opsi 3: OpenLiteSpeed
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-ols.yml --ask-vault-pass
+ansible-playbook -i inventories/production/hosts.yml playbooks/laravel-ols.yml --ask-vault-pass
 ```
 
 **Hasil**: Aplikasi Laravel berjalan di `http://ip-server-anda`
@@ -118,7 +121,11 @@ ansible-playbook -i ansible/inventories/production ansible/playbooks/monitoring.
 
 Jika Anda ingin menerima alert Telegram:
 
-1. Deploy n8n: `ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml --limit n8n_servers --ask-vault-pass`
+1. Deploy n8n:
+   ```bash
+   cd ansible/
+   ansible-playbook -i inventories/production/hosts.yml playbooks/site.yml --limit n8n_servers --ask-vault-pass
+   ```
 2. Buka dashboard n8n
 3. Import workflow dari `examples/n8n-workflows/`
 4. Konfigurasi token bot Telegram
@@ -206,7 +213,8 @@ Jika Anda ingin menerima alert Telegram:
 
 Deploy:
 ```bash
-ansible-playbook -i ansible/inventories/production ansible/playbooks/monitoring.yml --ask-vault-pass
+cd ansible/
+ansible-playbook -i inventories/production/hosts.yml playbooks/monitoring.yml --ask-vault-pass
 ```
 
 ---
@@ -220,10 +228,11 @@ ansible-playbook -i ansible/inventories/production ansible/playbooks/monitoring.
 ```bash
 # 1. Dapatkan kredensial VPS klien
 # 2. Update inventory
-nano ansible/inventories/production/hosts.yml
+cd ansible/
+nano inventories/production/hosts.yml
 
 # 3. Deploy
-ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
+ansible-playbook -i inventories/production/hosts.yml playbooks/site.yml --ask-vault-pass
 
 # 4. Selesai! Aplikasi klien sudah live
 ```
@@ -239,8 +248,9 @@ ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
 **Skenario**: Software house perlu monitor 10 website klien.
 
 ```bash
-# 1. Deploy monitoring stack via Ansible
-ansible-playbook -i ansible/inventories/production ansible/playbooks/monitoring.yml --ask-vault-pass
+# 1. Deploy monitoring stack
+cd ansible/
+ansible-playbook -i inventories/production/hosts.yml playbooks/monitoring.yml --ask-vault-pass
 
 # 2. Buka Uptime Kuma, tambahkan semua domain
 # 3. Import workflow alert SSL ke n8n (opsional)
@@ -259,7 +269,8 @@ ansible-playbook -i ansible/inventories/production ansible/playbooks/monitoring.
 
 ```bash
 # 1. Deploy OpenVPN
-ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml --limit vpn_servers
+cd ansible/
+ansible-playbook -i inventories/production/hosts.yml playbooks/site.yml --limit vpn_servers --ask-vault-pass
 
 # 2. Generate konfigurasi klien
 # 3. Distribusikan ke anggota tim
