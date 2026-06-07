@@ -174,10 +174,18 @@
     state: present
   when: ssl_enabled | bool
 
+- name: Check if SSL certificate exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+  register: wp_ssl_cert_stat
+
 - name: Obtain SSL certificate
-  shell: |
-    certbot --nginx -d {{ domain }} --non-interactive --agree-tos -m {{ ssl_email }}
-  when: ssl_enabled | bool
+  command: >
+    certbot --nginx -d {{ domain }}
+    --non-interactive --agree-tos -m {{ ssl_email }}
+  when:
+    - ssl_enabled | bool
+    - not wp_ssl_cert_stat.stat.exists
 
 - name: Display deployment information
   debug:

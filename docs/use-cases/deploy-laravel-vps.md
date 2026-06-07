@@ -102,8 +102,17 @@ ssl_email: email@anda.com
 
 ### Langkah 4: Deploy
 
+Pilih webserver yang ingin digunakan:
+
 ```bash
-ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
+# Opsi 1: Nginx (paling umum, direkomendasikan)
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml
+
+# Opsi 2: Apache2
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml
+
+# Opsi 3: OpenLiteSpeed (performa tinggi)
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-ols.yml
 ```
 
 ### Langkah 5: Verifikasi Deployment

@@ -91,18 +91,44 @@
   args:
     creates: "{{ easyrsa_dir }}/pki/issued/{{ item }}.crt"
 
-- name: Copy client certificates
+- name: Create client directories
+  file:
+    path: "{{ openvpn_clients_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  loop: "{{ openvpn_clients }}"
+
+- name: Copy CA certificate to clients
   copy:
-    src: "{{ easyrsa_dir }}/pki/{{ item.src }}"
-    dest: "{{ openvpn_clients_dir }}/{{ item.client }}/{{ item.dest }}"
+    src: "{{ easyrsa_dir }}/pki/ca.crt"
+    dest: "{{ openvpn_clients_dir }}/{{ item }}/ca.crt"
     remote_src: yes
     owner: root
     group: root
     mode: '0600'
-  loop:
-    - { client: "{{ openvpn_clients[0] }}", src: "ca.crt", dest: "ca.crt" }
-    - { client: "{{ openvpn_clients[0] }}", src: "issued/{{ openvpn_clients[0] }}.crt", dest: "client.crt" }
-    - { client: "{{ openvpn_clients[0] }}", src: "private/{{ openvpn_clients[0] }}.key", dest: "client.key" }
+  loop: "{{ openvpn_clients }}"
+
+- name: Copy client certificates
+  copy:
+    src: "{{ easyrsa_dir }}/pki/issued/{{ item }}.crt"
+    dest: "{{ openvpn_clients_dir }}/{{ item }}/client.crt"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0600'
+  loop: "{{ openvpn_clients }}"
+
+- name: Copy client keys
+  copy:
+    src: "{{ easyrsa_dir }}/pki/private/{{ item }}.key"
+    dest: "{{ openvpn_clients_dir }}/{{ item }}/client.key"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0600'
+  loop: "{{ openvpn_clients }}"
 
 - name: Create server configuration
   template:
@@ -119,10 +145,16 @@
     state: present
     reload: yes
 
-- name: Configure firewall
-  shell: |
-    iptables -t nat -A POSTROUTING -s {{ openvpn_network }}/{{ openvpn_netmask }} -o eth0 -j MASQUERADE
-    iptables-save > /etc/iptables/rules.v4
+- name: Check if NAT rule already exists
+  shell: iptables -t nat -C POSTROUTING -s {{ openvpn_network }}/{{ openvpn_netmask }} -o eth0 -j MASQUERADE
+  register: nat_rule_check
+  failed_when: false
+  changed_when: false
+
+- name: Configure NAT masquerade
+  command: iptables -t nat -A POSTROUTING -s {{ openvpn_network }}/{{ openvpn_netmask }} -o eth0 -j MASQUERADE
+  when: nat_rule_check.rc != 0
+  notify: save iptables rules
 
 - name: Start and enable OpenVPN
   systemd:

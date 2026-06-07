@@ -1,0 +1,5 @@
+---
+# UFW Role - Default Variables
+ssh_port: '22'
+ufw_allow_http: true
+ufw_allow_https: true

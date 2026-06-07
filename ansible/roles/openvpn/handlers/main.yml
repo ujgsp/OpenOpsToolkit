@@ -15,3 +15,7 @@
   systemd:
     name: openvpn
     state: started
+
+- name: save iptables rules
+  shell: iptables-save > /etc/iptables/rules.v4
+  changed_when: false

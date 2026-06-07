@@ -122,11 +122,14 @@
     state: present
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
+- name: Download Composer installer
+  get_url:
+    url: https://getcomposer.org/installer
+    dest: /tmp/composer-setup.php
+    mode: '0755'
+
 - name: Install Composer
-  shell: |
-    curl -sS https://getcomposer.org/installer | php
-    mv composer.phar /usr/local/bin/composer
-    chmod +x /usr/local/bin/composer
+  command: php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
   args:
     creates: /usr/local/bin/composer
 
@@ -164,16 +167,30 @@
     group: www-data
     mode: '0640'
 
+- name: Check if APP_KEY is set
+  shell: "grep -c '^APP_KEY=' /var/www/{{ app_name }}.env | grep -v '^0$'"
+  register: app_key_check
+  failed_when: false
+  changed_when: false
+
 - name: Generate application key
-  shell: "cd /var/www/{{ app_name }} && php artisan key:generate"
+  command: "php artisan key:generate"
+  args:
+    chdir: "/var/www/{{ app_name }}"
   become: yes
   become_user: www-data
-  when: app_env != "production"
+  when:
+    - app_env != "production"
+    - app_key_check.rc != 0
 
 - name: Run database migrations
-  shell: "cd /var/www/{{ app_name }} && php artisan migrate --force"
+  command: php artisan migrate --force
+  args:
+    chdir: "/var/www/{{ app_name }}"
   become: yes
   become_user: www-data
+  register: migrate_result
+  changed_when: "'Nothing to migrate' not in migrate_result.stdout"
 
 - name: Set storage permissions
   file:
@@ -193,20 +210,29 @@
     mode: '0775'
     recurse: yes
 
-- name: Configure Laravel cache
-  shell: "cd /var/www/{{ app_name }} && php artisan config:cache"
+- name: Cache Laravel config
+  command: php artisan config:cache
+  args:
+    chdir: "/var/www/{{ app_name }}"
   become: yes
   become_user: www-data
+  changed_when: false
 
-- name: Configure Laravel routes
-  shell: "cd /var/www/{{ app_name }} && php artisan route:cache"
+- name: Cache Laravel routes
+  command: php artisan route:cache
+  args:
+    chdir: "/var/www/{{ app_name }}"
   become: yes
   become_user: www-data
+  changed_when: false
 
-- name: Configure Laravel views
-  shell: "cd /var/www/{{ app_name }} && php artisan view:cache"
+- name: Cache Laravel views
+  command: php artisan view:cache
+  args:
+    chdir: "/var/www/{{ app_name }}"
   become: yes
   become_user: www-data
+  changed_when: false
 
 - name: Start and enable services
   systemd:
@@ -241,10 +267,18 @@
     state: present
   when: ssl_enabled | bool
 
+- name: Check if SSL certificate exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+  register: ssl_cert_stat
+
 - name: Obtain SSL certificate
-  shell: |
-    certbot --nginx -d {{ domain }} --non-interactive --agree-tos -m {{ ssl_email }}
-  when: ssl_enabled | bool
+  command: >
+    certbot --nginx -d {{ domain }}
+    --non-interactive --agree-tos -m {{ ssl_email }}
+  when:
+    - ssl_enabled | bool
+    - not ssl_cert_stat.stat.exists
 
 - name: Configure SSL renewal cron
   cron:

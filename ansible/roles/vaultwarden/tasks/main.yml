@@ -58,9 +58,9 @@
     mode: '0600'
 
 - name: Start Vaultwarden with Docker Compose
-  shell: |
-    cd {{ vaultwarden_data_dir }}
-    docker compose up -d
+  community.docker.docker_compose_v2:
+    project_src: "{{ vaultwarden_data_dir }}"
+    state: present
   register: docker_compose_result
 
 - name: Wait for Vaultwarden to be ready
@@ -129,10 +129,18 @@
     state: present
   when: vaultwarden_ssl_enabled | bool
 
+- name: Check if SSL certificate exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ vaultwarden_domain }}/fullchain.pem"
+  register: vaultwarden_ssl_cert_stat
+
 - name: Obtain SSL certificate
-  shell: |
-    certbot --nginx -d {{ vaultwarden_domain }} --non-interactive --agree-tos -m {{ vaultwarden_ssl_email }}
-  when: vaultwarden_ssl_enabled | bool
+  command: >
+    certbot --nginx -d {{ vaultwarden_domain }}
+    --non-interactive --agree-tos -m {{ vaultwarden_ssl_email }}
+  when:
+    - vaultwarden_ssl_enabled | bool
+    - not vaultwarden_ssl_cert_stat.stat.exists
 
 - name: Display deployment information
   debug:

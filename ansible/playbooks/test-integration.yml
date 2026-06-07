@@ -1,0 +1,331 @@
+---
+# Integration Test Playbook
+# Test Ansible playbook tanpa systemd (cocok untuk Docker container)
+# Usage: ansible-playbook -i ansible/inventories/test/hosts.yml ansible/playbooks/test-integration.yml
+
+- name: Integration Test — OpenOps Toolkit
+  hosts: test-vps
+  become: yes
+  gather_facts: yes
+
+  vars:
+    app_name: "test-laravel"
+    domain: "test.local"
+    php_version: "8.3"
+    laravel_app_name: "test-laravel"
+    laravel_domain: "test.local"
+
+  tasks:
+    # ==========================================
+    # 1. FACT GATHERING
+    # ==========================================
+    - name: TEST 1 — Fact gathering
+      debug:
+        msg: "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}, Python: {{ ansible_python_version }}"
+      tags: [always]
+
+    # ==========================================
+    # 2. APT PACKAGE MANAGEMENT
+    # ==========================================
+    - name: TEST 2a — Install basic dependencies
+      apt:
+        name:
+          - curl
+          - git
+          - unzip
+          - ufw
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: TEST 2b — Add PHP repository
+      apt_repository:
+        repo: "ppa:ondrej/php"
+        update_cache: yes
+
+    - name: TEST 2c — Install PHP {{ php_version }}
+      apt:
+        name:
+          - "php{{ php_version }}-fpm"
+          - "php{{ php_version }}-mysql"
+          - "php{{ php_version }}-xml"
+          - "php{{ php_version }}-mbstring"
+          - "php{{ php_version }}-curl"
+          - "php{{ php_version }}-zip"
+        state: present
+
+    - name: TEST 2d — Verify PHP installed
+      command: "php{{ php_version }} --version"
+      register: php_version_result
+      changed_when: false
+
+    - name: TEST 2e — Display PHP version
+      debug:
+        msg: "{{ php_version_result.stdout_lines[0] }}"
+
+    # ==========================================
+    # 3. UFW FIREWALL
+    # ==========================================
+    - name: TEST 3a — Install UFW
+      apt:
+        name: ufw
+        state: present
+
+    - name: TEST 3b — Set default deny incoming
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: TEST 3c — Set default allow outgoing
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: TEST 3d — Allow SSH
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: TEST 3e — Allow HTTP
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: TEST 3f — Allow HTTPS
+      ufw:
+        rule: allow
+        port: '443'
+        proto: tcp
+
+    - name: TEST 3g — Enable UFW
+      ufw:
+        state: enabled
+        logging: 'low'
+
+    - name: TEST 3h — Verify UFW status
+      command: ufw status verbose
+      register: ufw_status
+      changed_when: false
+
+    - name: TEST 3i — Display UFW status
+      debug:
+        msg: "{{ ufw_status.stdout_lines }}"
+
+    # ==========================================
+    # 4. NGINX INSTALLATION
+    # ==========================================
+    - name: TEST 4a — Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: TEST 4b — Create Nginx virtual host
+      template:
+        src: "../templates/nginx-laravel.conf.j2"
+        dest: "/etc/nginx/sites-available/{{ app_name }}.conf"
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        laravel_php_version: "{{ php_version }}"
+
+    - name: TEST 4c — Enable site
+      file:
+        src: "/etc/nginx/sites-available/{{ app_name }}.conf"
+        dest: "/etc/nginx/sites-enabled/{{ app_name }}.conf"
+        state: link
+
+    - name: TEST 4d — Remove default site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: TEST 4e — Verify Nginx config
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+
+    - name: TEST 4f — Display Nginx config test
+      debug:
+        msg: "{{ nginx_test.stderr_lines }}"
+
+    # ==========================================
+    # 5. MYSQL INSTALLATION
+    # ==========================================
+    - name: TEST 5a — Install MySQL
+      apt:
+        name:
+          - mysql-server
+          - mysql-client
+          - python3-mysqldb
+        state: present
+
+    - name: TEST 5b — Start MySQL manually (no systemd)
+      shell: |
+        if ! pgrep -x mysqld > /dev/null; then
+          mysqld --user=mysql --daemonize --pid-file=/var/run/mysqld/mysqld.pid
+          sleep 3
+        fi
+        echo "MySQL running: $(pgrep -x mysqld | wc -l) process(es)"
+      register: mysql_start
+      changed_when: "'1 process' in mysql_start.stdout"
+
+    - name: TEST 5c — Create test database
+      mysql_db:
+        name: "{{ app_name }}"
+        state: present
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: TEST 5d — Create test user
+      mysql_user:
+        name: "testuser"
+        password: "testpass123"
+        priv: "{{ app_name }}.*:ALL"
+        state: present
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    # ==========================================
+    # 6. TEMPLATE RENDERING (Jinja2)
+    # ==========================================
+    - name: TEST 6a — Render PHP-FPM config
+      template:
+        src: "../roles/laravel/templates/php-fpm.conf.j2"
+        dest: "/etc/php/{{ php_version }}/fpm/pool.d/{{ app_name }}.conf"
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        php_memory_limit: "256M"
+        php_upload_max_filesize: "64M"
+        app_env: "testing"
+        app_debug: "false"
+        app_url: "http://{{ domain }}"
+
+    - name: TEST 6b — Render .env file
+      template:
+        src: "../roles/laravel/templates/env.j2"
+        dest: "/tmp/test-laravel.env"
+        owner: root
+        group: root
+        mode: '0640'
+      vars:
+        app_name: "test-laravel"
+        app_env: "testing"
+        app_key: "base64:testkey123"
+        app_debug: "false"
+        app_url: "http://test.local"
+        db_name: "{{ app_name }}"
+        db_user: "testuser"
+        db_password: "testpass123"
+        db_host: "127.0.0.1"
+        cache_driver: "file"
+        session_driver: "file"
+        queue_driver: "sync"
+        redis_host: "127.0.0.1"
+        redis_port: "6379"
+        redis_password: ""
+        mail_driver: "smtp"
+        mail_host: "smtp.mailtrap.io"
+        mail_port: "2525"
+        mail_username: ""
+        mail_password: ""
+        mail_encryption: "tls"
+        mail_from_address: "noreply@test.local"
+        mail_from_name: "Test App"
+        log_channel: "stack"
+        log_level: "debug"
+        session_lifetime: "120"
+        broadcast_driver: "log"
+        filesystem_driver: "local"
+
+    - name: TEST 6c — Verify .env file permissions
+      stat:
+        path: "/tmp/test-laravel.env"
+      register: env_stat
+
+    - name: TEST 6d — Assert .env is not world-readable
+      assert:
+        that:
+          - env_stat.stat.mode == "0640"
+        fail_msg: ".env file should be 0640, got {{ env_stat.stat.mode }}"
+        success_msg: ".env permissions OK: {{ env_stat.stat.mode }}"
+
+    # ==========================================
+    # 7. FILE OPERATIONS
+    # ==========================================
+    - name: TEST 7a — Create application directory
+      file:
+        path: "/var/www/{{ app_name }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: TEST 7b — Set storage permissions
+      file:
+        path: "/var/www/{{ app_name }}/storage"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0775'
+
+    # ==========================================
+    # 8. DOCKER (verify install)
+    # ==========================================
+    - name: TEST 8a — Verify Docker installed
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: TEST 8b — Display Docker version
+      debug:
+        msg: "{{ docker_version.stdout }}"
+
+    - name: TEST 8c — Verify Docker Compose plugin
+      command: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - name: TEST 8d — Display Docker Compose version
+      debug:
+        msg: "{{ compose_version.stdout }}"
+
+    # ==========================================
+    # 9. NGINX SYNTAX VALIDATION
+    # ==========================================
+    - name: TEST 9a — Verify rendered Nginx config syntax
+      command: nginx -t -c /etc/nginx/nginx.conf
+      register: nginx_syntax
+      changed_when: false
+
+    - name: TEST 9b — Assert Nginx config is valid
+      assert:
+        that:
+          - nginx_syntax.rc == 0
+        fail_msg: "Nginx config invalid: {{ nginx_syntax.stderr }}"
+        success_msg: "Nginx config valid"
+
+    # ==========================================
+    # SUMMARY
+    # ==========================================
+    - name: TEST SUMMARY
+      debug:
+        msg: |
+          ========================================
+          ✅ ALL INTEGRATION TESTS PASSED
+          ========================================
+
+          Tested:
+          1. ✅ Fact gathering ({{ ansible_distribution }} {{ ansible_distribution_version }})
+          2. ✅ APT package management (PHP {{ php_version }})
+          3. ✅ UFW firewall (SSH/HTTP/HTTPS allowed)
+          4. ✅ Nginx installation + virtual host
+          5. ✅ MySQL installation + DB/user creation
+          6. ✅ Template rendering (PHP-FPM, .env)
+          7. ✅ File operations (dirs, permissions)
+          8. ✅ Docker + Docker Compose plugin
+          9. ✅ Nginx syntax validation
+
+          ========================================

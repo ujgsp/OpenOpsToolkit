@@ -85,8 +85,16 @@ cd OpenOpsToolkit
 # Edit inventory dengan IP server Anda
 nano ansible/inventories/production/hosts.yml
 
-# Deploy Laravel
-ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
+# Pilih webserver yang ingin digunakan:
+
+# Opsi 1: Nginx (paling umum)
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml
+
+# Opsi 2: Apache2
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml
+
+# Opsi 3: OpenLiteSpeed
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-ols.yml
 ```
 
 **Hasil**: Aplikasi Laravel berjalan di `http://ip-server-anda`

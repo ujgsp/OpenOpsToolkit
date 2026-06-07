@@ -20,7 +20,7 @@ nginx_client_max_body_size: "64M"
 # Database
 db_name: "laravel_db"
 db_user: "laravel"
-db_password: "change_me_in_production"
+db_password: "{{ vault_db_password | default('CHANGEME_VAULT_REQUIRED') }}"
 
 # Domain
 domain: "example.com"

@@ -1,0 +1,55 @@
+# OpenLiteSpeed virtual host config for Laravel
+# Managed by Ansible - OpenOps Toolkit
+
+docRoot                   /var/www/{{ laravel_app_name }}/public/
+enableGzip                1
+
+index  {
+  useServer               0
+  indexFiles              index.php
+}
+
+rewrite  {
+  enable                  1
+  rules                   <<<END_rules
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+END_rules
+}
+
+context / {
+  allowBrowse             1
+  location                /var/www/{{ laravel_app_name }}/public/
+
+  rewrite  {
+    enable                1
+    rules                 <<<END_rules
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+END_rules
+  }
+
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_flag display_errors off
+    php_admin_flag log_errors on
+    php_admin_value error_log /var/www/{{ laravel_app_name }}/storage/logs/php-error.log
+    php_admin_value memory_limit {{ laravel_php_memory_limit | default('256M') }}
+    php_admin_value upload_max_filesize {{ laravel_php_upload_max_filesize | default('64M') }}
+    php_admin_value post_max_size {{ laravel_php_upload_max_filesize | default('64M') }}
+  }
+}
+
+{% if laravel_ssl_enabled | default(false) %}
+listener SSL {
+  address                 *:443
+  secure                  1
+  keyFile                  /etc/letsencrypt/live/{{ laravel_domain }}/privkey.pem
+  certFile                 /etc/letsencrypt/live/{{ laravel_domain }}/fullchain.pem
+  certChain                1
+  map                     {{ laravel_app_name }} {{ laravel_domain }}
+}
+{% endif %}

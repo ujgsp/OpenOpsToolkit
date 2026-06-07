@@ -2,12 +2,42 @@
 
 Deploy Laravel application on Ubuntu 22.04 with Nginx, PHP-FPM, and MySQL.
 
+## Quick Start (Pemula)
+
+Pilih playbook sesuai webserver yang ingin digunakan:
+
+```bash
+# 1. Edit inventory
+nano ansible/inventories/production/hosts.yml
+
+# 2. Jalankan salah satu:
+
+# Nginx (paling umum)
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml
+
+# Apache2
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml
+
+# OpenLiteSpeed
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-ols.yml
+```
+
+> 💡 Tidak perlu set variable `laravel_webserver_type` — sudah otomatis di setiap playbook.
+
 ## Requirements
 
 - Ubuntu 22.04 LTS
 - Minimum 1GB RAM
 - SSH access with sudo privileges
 - Domain name (optional, for SSL)
+
+## Supported Web Servers
+
+| Web Server | Variable Value | Notes |
+|------------|----------------|-------|
+| Nginx | `nginx` | Default, recommended |
+| Apache2 | `apache2` | With mod_php or PHP-FPM |
+| OpenLiteSpeed | `openlitespeed` | High-performance alternative |
 
 ## Role Variables
 
@@ -32,6 +62,9 @@ laravel_domain: "example.com"                # Domain name
 ### Optional Variables
 
 ```yaml
+# Webserver (nginx | apache2 | openlitespeed)
+laravel_webserver_type: "nginx"              # Webserver type
+
 # PHP
 laravel_php_version: "8.2"                   # PHP version
 laravel_php_memory_limit: "256M"             # Memory limit
@@ -81,6 +114,41 @@ laravel_queue_driver: "sync"                 # Queue driver
     laravel_ssl_email: "admin@example.com"
   roles:
     - laravel
+```
+
+### With Specific Web Server
+
+```yaml
+---
+- hosts: webservers
+  become: yes
+  vars:
+    laravel_webserver_type: "apache2"  # or "openlitespeed"
+    laravel_app_name: "my-laravel-app"
+    laravel_app_repo: "https://github.com/user/my-laravel-app.git"
+    laravel_domain: "myapp.example.com"
+  roles:
+    - laravel
+```
+
+### Per-Server Web Server (Inventory)
+
+```yaml
+webservers:
+  hosts:
+    nginx-server:
+      ansible_host: 192.168.1.10
+      laravel_webserver_type: "nginx"
+    apache-server:
+      ansible_host: 192.168.1.11
+      laravel_webserver_type: "apache2"
+    ols-server:
+      ansible_host: 192.168.1.12
+      laravel_webserver_type: "openlitespeed"
+  vars:
+    laravel_app_name: "my-laravel-app"
+    laravel_app_repo: "https://github.com/user/my-laravel-app.git"
+    laravel_domain: "myapp.example.com"
 ```
 
 ### With Inventory

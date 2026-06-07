@@ -1,28 +1,35 @@
 ---
 # Site Deployment Playbook
 # Deploy entire infrastructure
+# Part of OpenOps Toolkit
 
 # 1. Deploy Load Balancers
 - name: Deploy Load Balancers
   hosts: loadbalancers
   become: yes
+  serial: "50%"
+
   roles:
     - docker
+    - ufw
     - nginx
-  
+
   tasks:
     - name: Configure Nginx load balancer
       template:
         src: templates/nginx-loadbalancer.conf.j2
         dest: /etc/nginx/conf.d/loadbalancer.conf
+        owner: root
+        group: root
+        mode: '0644'
       notify: restart nginx
-    
-    - name: Start Nginx
+
+    - name: Start and enable Nginx
       systemd:
         name: nginx
         state: started
         enabled: yes
-  
+
   handlers:
     - name: restart nginx
       systemd:
@@ -33,9 +40,12 @@
 - name: Deploy Database Servers
   hosts: dbservers
   become: yes
+  serial: 1
+
   roles:
     - docker
-  
+    - ufw
+
   tasks:
     - name: Install MySQL
       apt:
@@ -44,30 +54,41 @@
           - mysql-client
           - python3-mysqldb
         state: present
-    
-    - name: Start MySQL
+
+    - name: Start and enable MySQL
       systemd:
         name: mysql
         state: started
         enabled: yes
-    
+
     - name: Configure MySQL
       template:
         src: templates/mysql.conf.j2
         dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+        owner: root
+        group: root
+        mode: '0644'
       notify: restart mysql
-    
+
     - name: Install Redis
       apt:
         name: redis-server
         state: present
-    
-    - name: Start Redis
+
+    - name: Start and enable Redis
       systemd:
         name: redis-server
         state: started
         enabled: yes
-  
+
+    - name: Allow MySQL from webservers
+      ufw:
+        rule: allow
+        port: '3306'
+        proto: tcp
+        src: "{{ hostvars[item].ansible_host }}"
+      loop: "{{ groups['webservers'] | default([]) }}"
+
   handlers:
     - name: restart mysql
       systemd:
@@ -78,44 +99,53 @@
 - name: Deploy Application Servers
   hosts: appservers
   become: yes
+  serial: "50%"
+
   roles:
     - docker
+    - ufw
     - laravel
-  
+
   vars:
-    app_name: "{{ app_name }}"
-    app_env: "{{ app_env }}"
+    app_name: "{{ laravel_app_name | default(app_name) }}"
+    app_env: "{{ laravel_app_env | default(app_env) }}"
     db_host: "{{ groups['dbservers'][0] }}"
-    redis_host: "{{ groups['cache'][0] }}"
+    redis_host: "{{ groups['cache'][0] | default('127.0.0.1') }}"
 
 # 4. Deploy Web Servers
 - name: Deploy Web Servers
   hosts: webservers
   become: yes
+  serial: "50%"
+
   roles:
     - docker
+    - ufw
     - nginx
-  
+
   tasks:
     - name: Configure Nginx
       template:
         src: templates/nginx-webserver.conf.j2
         dest: /etc/nginx/sites-available/{{ app_name }}
+        owner: root
+        group: root
+        mode: '0644'
       notify: restart nginx
-    
+
     - name: Enable site
       file:
         src: /etc/nginx/sites-available/{{ app_name }}
         dest: /etc/nginx/sites-enabled/{{ app_name }}
         state: link
       notify: restart nginx
-    
-    - name: Start Nginx
+
+    - name: Start and enable Nginx
       systemd:
         name: nginx
         state: started
         enabled: yes
-  
+
   handlers:
     - name: restart nginx
       systemd:
@@ -126,38 +156,105 @@
 - name: Deploy Monitoring
   hosts: monitoring
   become: yes
+
   roles:
     - docker
-  
+    - ufw
+
+  vars:
+    monitoring_allowed_ports:
+      - '9090'   # Prometheus
+      - '3000'   # Grafana
+      - '9093'   # Alertmanager
+      - '3001'   # Uptime Kuma
+
   tasks:
+    - name: Allow monitoring ports
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: "{{ monitoring_allowed_ports }}"
+
     - name: Create monitoring directory
       file:
         path: /opt/monitoring
         state: directory
-    
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create subdirectories
+      file:
+        path: "/opt/monitoring/{{ item }}"
+        state: directory
+      loop:
+        - prometheus
+        - grafana
+        - grafana/provisioning
+        - grafana/provisioning/datasources
+        - alertmanager
+
+    - name: Copy Prometheus config
+      template:
+        src: templates/prometheus.yml.j2
+        dest: /opt/monitoring/prometheus/prometheus.yml
+
+    - name: Copy Alertmanager config
+      template:
+        src: templates/alertmanager.yml.j2
+        dest: /opt/monitoring/alertmanager/alertmanager.yml
+
+    - name: Provision Grafana datasource
+      template:
+        src: templates/grafana-datasource.yml.j2
+        dest: /opt/monitoring/grafana/provisioning/datasources/prometheus.yml
+
     - name: Copy Docker Compose
       template:
         src: templates/monitoring-docker-compose.yml.j2
         dest: /opt/monitoring/docker-compose.yml
-    
+
     - name: Start monitoring stack
-      shell: |
-        cd /opt/monitoring
-        docker-compose up -d
+      community.docker.docker_compose_v2:
+        project_src: /opt/monitoring
+        state: present
+      register: compose_result
+
+    - name: Wait for Prometheus
+      uri:
+        url: "http://{{ ansible_host }}:9090/-/healthy"
+        status_code: 200
+      register: prometheus_health
+      until: prometheus_health.status == 200
+      retries: 30
+      delay: 10
+
+    - name: Wait for Grafana
+      uri:
+        url: "http://{{ ansible_host }}:3000/api/health"
+        status_code: 200
+      register: grafana_health
+      until: grafana_health.status == 200
+      retries: 30
+      delay: 10
 
 # 6. Health Checks
 - name: Health Checks
   hosts: all_servers
   become: yes
+  gather_facts: no
   tasks:
     - name: Check disk usage
-      shell: df -h /
+      command: df -h /
       register: disk_usage
-    
+      changed_when: false
+
     - name: Check memory usage
-      shell: free -h
+      command: free -h
       register: memory_usage
-    
+      changed_when: false
+
     - name: Display health status
       debug:
         msg: |

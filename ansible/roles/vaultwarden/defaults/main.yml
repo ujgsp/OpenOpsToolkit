@@ -8,7 +8,7 @@ vaultwarden_data_dir: "/opt/vaultwarden"
 vaultwarden_domain: "vault.example.com"
 
 # Admin
-vaultwarden_admin_token: "change_me"
+vaultwarden_admin_token: "{{ vault_vaultwarden_admin_token | default('VAULT_REQUIRED') }}"
 vaultwarden_admin_enabled: true
 
 # Features
@@ -21,7 +21,7 @@ vaultwarden_smtp_host: ""
 vaultwarden_smtp_port: 587
 vaultwarden_smtp_security: "starttls"
 vaultwarden_smtp_username: ""
-vaultwarden_smtp_password: ""
+vaultwarden_smtp_password: "{{ vault_vaultwarden_smtp_password | default('') }}"
 vaultwarden_smtp_from: ""
 vaultwarden_smtp_from_name: "Vaultwarden"
 

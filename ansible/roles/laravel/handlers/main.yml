@@ -25,3 +25,25 @@
   systemd:
     name: "php{{ php_version }}-fpm"
     state: reloaded
+
+# Apache2 handlers
+- name: restart apache2
+  systemd:
+    name: apache2
+    state: restarted
+
+- name: reload apache2
+  systemd:
+    name: apache2
+    state: reloaded
+
+# OpenLiteSpeed handlers
+- name: restart openlitespeed
+  systemd:
+    name: lsws
+    state: restarted
+
+- name: reload openlitespeed
+  systemd:
+    name: lsws
+    state: reloaded

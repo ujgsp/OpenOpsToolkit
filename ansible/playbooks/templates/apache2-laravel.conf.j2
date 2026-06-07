@@ -1,0 +1,61 @@
+# Apache2 virtual host for Laravel
+# Managed by Ansible - OpenOps Toolkit
+
+<VirtualHost *:80>
+    ServerName {{ laravel_domain }}
+    DocumentRoot /var/www/{{ laravel_app_name }}/public
+
+    <Directory /var/www/{{ laravel_app_name }}/public>
+        AllowOverride All
+        Require all granted
+        Options -Indexes +FollowSymLinks
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ laravel_app_name }}-error.log
+    CustomLog ${APACHE_LOG_DIR}/{{ laravel_app_name }}-access.log combined
+
+    # Security headers
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+
+    # PHP-FPM via proxy
+    <FilesMatch \.php$>
+        SetHandler "proxy:unix:/var/run/php/php{{ laravel_php_version | default('8.2') }}-fpm.sock|fcgi://localhost"
+    </FilesMatch>
+
+    # Disable .htaccess in storage
+    <Directory /var/www/{{ laravel_app_name }}/storage>
+        <FilesMatch ".*">
+            Require all denied
+        </FilesMatch>
+    </Directory>
+</VirtualHost>
+
+{% if laravel_ssl_enabled | default(false) %}
+<VirtualHost *:443>
+    ServerName {{ laravel_domain }}
+    DocumentRoot /var/www/{{ laravel_app_name }}/public
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/{{ laravel_domain }}/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/{{ laravel_domain }}/privkey.pem
+
+    <Directory /var/www/{{ laravel_app_name }}/public>
+        AllowOverride All
+        Require all granted
+        Options -Indexes +FollowSymLinks
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ laravel_app_name }}-ssl-error.log
+    CustomLog ${APACHE_LOG_DIR}/{{ laravel_app_name }}-ssl-access.log combined
+
+    # Security headers
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+
+    # PHP-FPM via proxy
+    <FilesMatch \.php$>
+        SetHandler "proxy:unix:/var/run/php/php{{ laravel_php_version | default('8.2') }}-fpm.sock|fcgi://localhost"
+    </FilesMatch>
+</VirtualHost>
+{% endif %}

@@ -1,17 +1,22 @@
 ---
 # Database Servers Deployment Playbook
 # Deploy database servers only
+# Part of OpenOps Toolkit
 
 - name: Deploy Database Servers
   hosts: dbservers
   become: yes
-  
+  serial: 1
+
+  roles:
+    - ufw
+
   tasks:
-    - name: Update system
+    - name: Update apt cache
       apt:
         update_cache: yes
-        upgrade: dist
-    
+        cache_valid_time: 3600
+
     - name: Install MySQL
       apt:
         name:
@@ -19,25 +24,28 @@
           - mysql-client
           - python3-mysqldb
         state: present
-    
-    - name: Start MySQL
+
+    - name: Start and enable MySQL
       systemd:
         name: mysql
         state: started
         enabled: yes
-    
+
     - name: Configure MySQL
       template:
         src: templates/mysql.conf.j2
         dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+        owner: root
+        group: root
+        mode: '0644'
       notify: restart mysql
-    
+
     - name: Create application database
       mysql_db:
         name: "{{ app_name }}"
         state: present
         login_unix_socket: /var/run/mysqld/mysqld.sock
-    
+
     - name: Create application user
       mysql_user:
         name: "{{ app_name }}"
@@ -45,44 +53,61 @@
         priv: "{{ app_name }}.*:ALL"
         state: present
         login_unix_socket: /var/run/mysqld/mysqld.sock
-    
+
     - name: Install Redis
       apt:
         name: redis-server
         state: present
-    
+
     - name: Configure Redis
       template:
         src: templates/redis.conf.j2
         dest: /etc/redis/redis.conf
+        owner: redis
+        group: redis
+        mode: '0640'
       notify: restart redis
-    
-    - name: Start Redis
+
+    - name: Start and enable Redis
       systemd:
         name: redis-server
         state: started
         enabled: yes
-    
-    - name: Health check MySQL
-      shell: mysqladmin ping
-      register: mysql_health
-      until: mysql_health.rc == 0
-      retries: 30
-      delay: 10
-    
-    - name: Health check Redis
-      shell: redis-cli ping
-      register: redis_health
-      until: redis_health.stdout == "PONG"
-      retries: 30
-      delay: 10
-  
+
+    - name: Allow MySQL from webservers
+      ufw:
+        rule: allow
+        port: '3306'
+        proto: tcp
+        src: "{{ hostvars[item].ansible_host }}"
+      loop: "{{ groups['webservers'] | default([]) }}"
+
+    - name: Allow Redis from webservers
+      ufw:
+        rule: allow
+        port: '6379'
+        proto: tcp
+        src: "{{ hostvars[item].ansible_host }}"
+      loop: "{{ groups['webservers'] | default([]) }}"
+
+    - name: Wait for MySQL
+      wait_for:
+        port: 3306
+        delay: 5
+        timeout: 60
+
+    - name: Wait for Redis
+      wait_for:
+        port: 6379
+        delay: 2
+        timeout: 30
+
   handlers:
     - name: restart mysql
       systemd:
         name: mysql
         state: restarted
-    
+
     - name: restart redis
       systemd:
         name: redis-server

@@ -1,0 +1,75 @@
+---
+# OpenLiteSpeed tasks for Laravel deployment
+# Part of OpenOps Toolkit
+
+- name: Add OpenLiteSpeed GPG key
+  ansible.builtin.get_url:
+    url: https://rpms.litespeedtech.com/debian/lst_debian_repo.gpg
+    dest: /usr/share/keyrings/lst_debian_repo.gpg
+    mode: '0644'
+
+- name: Add OpenLiteSpeed repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/lst_debian_repo.gpg] http://rpms.litespeedtech.com/debian/ jammy main"
+    state: present
+    filename: openlitespeed
+    update_cache: yes
+
+- name: Install OpenLiteSpeed
+  apt:
+    name: openlitespeed
+    state: present
+
+- name: Install LiteSpeed PHP module
+  apt:
+    name: "lsphp{{ laravel_php_version | default('8.2') | replace('.', '') }}-common"
+    state: present
+
+- name: Ensure virtual host directory exists
+  file:
+    path: "/usr/local/lsws/conf/vhosts/{{ laravel_app_name }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Configure OpenLiteSpeed virtual host
+  template:
+    src: ../templates/ols-laravel.conf.j2
+    dest: "/usr/local/lsws/conf/vhosts/{{ laravel_app_name }}/vhconf.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart openlitespeed
+
+- name: Add virtual host to OpenLiteSpeed config
+  blockinfile:
+    path: /usr/local/lsws/conf/httpd.conf
+    block: |
+      virtualhost {{ laravel_app_name }} {
+        vhRoot                  /var/www/{{ laravel_app_name }}
+        configFile              $SERVER_ROOT/conf/vhosts/{{ laravel_app_name }}/vhconf.conf
+        allowSymbolLink         1
+        enableScript            1
+        restrained              0
+      }
+    marker: "# {mark} ANSIBLE MANAGED - {{ laravel_app_name }}"
+  notify: restart openlitespeed
+
+- name: Configure listener for domain
+  blockinfile:
+    path: /usr/local/lsws/conf/httpd.conf
+    block: |
+      listener HTTP {
+        address                 *:80
+        secure                  0
+        map                     {{ laravel_app_name }} {{ laravel_domain }}
+      }
+    marker: "# {mark} ANSIBLE MANAGED LISTENER - {{ laravel_app_name }}"
+  notify: restart openlitespeed
+
+- name: Start and enable OpenLiteSpeed
+  systemd:
+    name: lsws
+    state: started
+    enabled: yes

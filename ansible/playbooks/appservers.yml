@@ -1,30 +1,32 @@
 ---
 # Application Servers Deployment Playbook
 # Deploy application servers only
+# Part of OpenOps Toolkit
 
 - name: Deploy Application Servers
   hosts: appservers
   become: yes
-  serial: 1
-  
+  serial: "50%"
+
   roles:
     - docker
+    - ufw
     - laravel
-  
+
   vars:
-    app_name: "{{ app_name }}"
-    app_env: "{{ app_env }}"
-    app_repo: "{{ app_repo }}"
-    app_branch: "{{ app_branch }}"
+    app_name: "{{ laravel_app_name | default(app_name) }}"
+    app_env: "{{ laravel_app_env | default(app_env) }}"
+    app_repo: "{{ laravel_app_repo | default(app_repo) }}"
+    app_branch: "{{ laravel_app_branch | default(app_branch) }}"
     db_host: "{{ groups['dbservers'][0] }}"
-    redis_host: "{{ groups['cache'][0] }}"
-  
+    redis_host: "{{ groups['cache'][0] | default('127.0.0.1') }}"
+
   tasks:
-    - name: Update system
+    - name: Update apt cache
       apt:
         update_cache: yes
-        upgrade: dist
-    
+        cache_valid_time: 3600
+
     - name: Install PHP
       apt:
         name:
@@ -36,11 +38,11 @@
           - "php{{ php_version }}-curl"
           - "php{{ php_version }}-zip"
         state: present
-    
+
     - name: Deploy application
       include_role:
         name: laravel
-    
+
     - name: Health check
       uri:
         url: "http://{{ ansible_host }}:9000/status"

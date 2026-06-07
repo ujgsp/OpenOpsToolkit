@@ -35,6 +35,9 @@ webservers:
     php_version: "8.2"
     php_memory_limit: "256M"
     php_upload_max_filesize: "64M"
+    
+    # Webserver settings (nginx | apache2 | openlitespeed)
+    laravel_webserver_type: "nginx"  # Change per server as needed
 
 # Database servers (if separate)
 dbservers:

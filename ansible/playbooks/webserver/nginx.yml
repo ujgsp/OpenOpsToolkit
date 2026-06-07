@@ -1,0 +1,44 @@
+---
+# Nginx tasks for Laravel deployment
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+
+- name: Configure Nginx virtual host
+  template:
+    src: ../templates/nginx-laravel.conf.j2
+    dest: "/etc/nginx/sites-available/{{ laravel_app_name }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+
+- name: Enable Nginx site
+  file:
+    src: "/etc/nginx/sites-available/{{ laravel_app_name }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ laravel_app_name }}.conf"
+    state: link
+  notify: restart nginx
+
+- name: Configure Nginx client max body size
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: 'client_max_body_size'
+    line: "client_max_body_size {{ laravel_nginx_client_max_body_size | default('64M') }};"
+    insertafter: 'http {'
+  notify: restart nginx
+
+- name: Start and enable Nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes

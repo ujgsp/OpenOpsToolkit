@@ -1,15 +1,40 @@
 ---
-# Laravel Deployment Playbook
+# Laravel Deployment Playbook - Multi-Webserver Support
 # Part of OpenOps Toolkit
+# Supported: nginx, apache2, openlitespeed
 
 - name: Deploy Laravel Application
   hosts: webservers
   become: yes
   gather_facts: yes
-  
+  serial: "50%"
+
+  vars:
+    # Webserver type: nginx | apache2 | openlitespeed
+    laravel_webserver_type: "{{ laravel_webserver | default('nginx') }}"
+
   vars_files:
     - ../inventories/group_vars/webservers.yml
-  
+
+  pre_tasks:
+    - name: Validate webserver type
+      assert:
+        that:
+          - laravel_webserver_type in ['nginx', 'apache2', 'openlitespeed']
+        fail_msg: "Invalid laravel_webserver_type '{{ laravel_webserver_type }}'. Must be: nginx, apache2, openlitespeed"
+        success_msg: "Webserver type: {{ laravel_webserver_type }}"
+
+    - name: Display deployment info
+      debug:
+        msg: |
+          ========================================
+          Laravel Deployment Starting
+          ========================================
+          App: {{ laravel_app_name }}
+          Domain: {{ laravel_domain }}
+          Webserver: {{ laravel_webserver_type }}
+          ========================================
+
   roles:
     - role: laravel
       vars:
@@ -23,33 +48,32 @@
         db_password: "{{ laravel_db_password }}"
         ssl_enabled: "{{ laravel_ssl_enabled }}"
         ssl_email: "{{ laravel_ssl_email }}"
-  
+
   tasks:
+    - name: Include webserver-specific configuration
+      include_tasks: "webserver/{{ laravel_webserver_type }}.yml"
+
     - name: Display deployment summary
       debug:
         msg: |
           ========================================
           Laravel Deployment Complete
           ========================================
-          
+
           Application: {{ laravel_app_name }}
           URL: http{% if laravel_ssl_enabled %}s{% endif %}://{{ laravel_domain }}
           Environment: {{ laravel_app_env }}
-          
+          Webserver: {{ laravel_webserver_type }}
+
           Services:
-          - Nginx: http://{{ laravel_domain }}
+          - {{ laravel_webserver_type | title }}: Running
           - PHP-FPM: Running
           - MySQL: Running
-          
+
           Next Steps:
           1. Configure DNS to point to this server
           2. Update .env file with production credentials
           3. Run database migrations if needed
           4. Configure backup strategy
-          
-          Documentation:
-          - Laravel: https://laravel.com/docs
-          - Ansible: https://docs.ansible.com
-          - OpenOps: https://github.com/openops-toolkit/openops-toolkit
-          
+
           ========================================

@@ -1,0 +1,68 @@
+---
+# Deploy Laravel dengan Apache2
+# Part of OpenOps Toolkit
+#
+# Usage:
+#   ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml
+#
+# Prasyarat:
+#   - Ubuntu 22.04 LTS
+#   - SSH access dengan sudo
+#   - Edit inventory di ansible/inventories/production/hosts.yml
+
+- name: Deploy Laravel dengan Apache2
+  hosts: webservers
+  become: yes
+  gather_facts: yes
+  serial: "50%"
+
+  vars:
+    laravel_webserver_type: "apache2"
+
+  vars_files:
+    - ../inventories/group_vars/webservers.yml
+
+  pre_tasks:
+    - name: Info deployment
+      debug:
+        msg: |
+          ========================================
+          Deploy Laravel + Apache2
+          ========================================
+          App: {{ laravel_app_name }}
+          Domain: {{ laravel_domain }}
+          ========================================
+
+  roles:
+    - role: laravel
+      vars:
+        app_name: "{{ laravel_app_name }}"
+        app_repo: "{{ laravel_app_repo }}"
+        app_branch: "{{ laravel_app_branch }}"
+        app_env: "{{ laravel_app_env }}"
+        domain: "{{ laravel_domain }}"
+        db_name: "{{ laravel_db_name }}"
+        db_user: "{{ laravel_db_user }}"
+        db_password: "{{ laravel_db_password }}"
+        ssl_enabled: "{{ laravel_ssl_enabled }}"
+        ssl_email: "{{ laravel_ssl_email }}"
+
+  tasks:
+    - name: Konfigurasi Apache2
+      include_tasks: "webserver/apache2.yml"
+
+    - name: Deploy selesai
+      debug:
+        msg: |
+          ========================================
+          ✅ Deploy Laravel + Apache2 Selesai!
+          ========================================
+
+          URL: http{% if laravel_ssl_enabled %}s{% endif %}://{{ laravel_domain }}
+          Webserver: Apache2
+
+          Cek status:
+            systemctl status apache2
+            systemctl status php{{ php_version | default('8.2') }}-fpm
+
+          ========================================

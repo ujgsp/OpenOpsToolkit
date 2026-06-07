@@ -1,0 +1,79 @@
+# Nginx virtual host for Laravel
+# Managed by Ansible - OpenOps Toolkit
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ laravel_domain }};
+    root /var/www/{{ laravel_app_name }}/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php{{ laravel_php_version | default('8.2') }}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    client_max_body_size {{ laravel_nginx_client_max_body_size | default('64M') }};
+}
+
+{% if laravel_ssl_enabled | default(false) %}
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {{ laravel_domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ laravel_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ laravel_domain }}/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    root /var/www/{{ laravel_app_name }}/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php{{ laravel_php_version | default('8.2') }}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+{% endif %}

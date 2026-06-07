@@ -10,13 +10,13 @@ n8n_domain: "n8n.example.com"
 
 # Basic Auth
 n8n_basic_auth_user: "admin"
-n8n_basic_auth_password: "change_me"
+n8n_basic_auth_password: "{{ vault_n8n_basic_auth_password | default('VAULT_REQUIRED') }}"
 
 # Database
 n8n_db_type: "postgres"
 n8n_db_name: "n8n"
 n8n_db_user: "n8n"
-n8n_db_password: "change_me"
+n8n_db_password: "{{ vault_n8n_db_password | default('VAULT_REQUIRED') }}"
 n8n_db_port: 5432
 
 # SSL

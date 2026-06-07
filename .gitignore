@@ -74,3 +74,5 @@ env/
 *.bak
 *.backup
 *.orig
+# Pi Agent (local-only)
+.pi/

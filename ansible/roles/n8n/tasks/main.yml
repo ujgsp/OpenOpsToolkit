@@ -58,9 +58,9 @@
     mode: '0600'
 
 - name: Start n8n with Docker Compose
-  shell: |
-    cd {{ n8n_data_dir }}
-    docker compose up -d
+  community.docker.docker_compose_v2:
+    project_src: "{{ n8n_data_dir }}"
+    state: present
   register: docker_compose_result
 
 - name: Wait for n8n to be ready
@@ -129,10 +129,18 @@
     state: present
   when: n8n_ssl_enabled | bool
 
+- name: Check if SSL certificate exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ n8n_domain }}/fullchain.pem"
+  register: n8n_ssl_cert_stat
+
 - name: Obtain SSL certificate
-  shell: |
-    certbot --nginx -d {{ n8n_domain }} --non-interactive --agree-tos -m {{ n8n_ssl_email }}
-  when: n8n_ssl_enabled | bool
+  command: >
+    certbot --nginx -d {{ n8n_domain }}
+    --non-interactive --agree-tos -m {{ n8n_ssl_email }}
+  when:
+    - n8n_ssl_enabled | bool
+    - not n8n_ssl_cert_stat.stat.exists
 
 - name: Display deployment information
   debug:

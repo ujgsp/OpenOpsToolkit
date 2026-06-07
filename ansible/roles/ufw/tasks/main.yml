@@ -1,0 +1,46 @@
+---
+# UFW Role - Main Tasks
+# Configure Uncomplicated Firewall
+
+- name: Install UFW
+  apt:
+    name: ufw
+    state: present
+
+- name: Set default deny incoming
+  ufw:
+    direction: incoming
+    policy: deny
+
+- name: Set default allow outgoing
+  ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow SSH
+  ufw:
+    rule: allow
+    port: "{{ ssh_port | default('22') }}"
+    proto: tcp
+    comment: "Allow SSH"
+
+- name: Allow HTTP
+  ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+    comment: "Allow HTTP"
+  when: ufw_allow_http | default(true) | bool
+
+- name: Allow HTTPS
+  ufw:
+    rule: allow
+    port: '443'
+    proto: tcp
+    comment: "Allow HTTPS"
+  when: ufw_allow_https | default(true) | bool
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+    logging: 'low'
