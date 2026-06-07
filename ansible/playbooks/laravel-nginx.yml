@@ -8,7 +8,7 @@
 # Prasyarat:
 #   - Ubuntu 22.04 LTS
 #   - SSH access dengan sudo
-#   - Edit inventory di ansible/inventories/production/hosts.yml
+#   - Edit inventory di ansible/inventories/production/inventory.yml
 
 - name: Deploy Laravel dengan Nginx
   hosts: webservers

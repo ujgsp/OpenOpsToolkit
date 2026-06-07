@@ -61,7 +61,7 @@ sudo systemctl start docker
 
 ### Langkah 2: Konfigurasi Inventory
 
-Edit `ansible/inventories/production/hosts.yml`:
+Edit `ansible/inventories/production/inventory.yml`:
 
 ```yaml
 n8n_servers:

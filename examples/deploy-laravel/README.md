@@ -21,7 +21,7 @@ Deploy a Laravel application to Ubuntu 22.04 VPS with Nginx, PHP 8.2, and MySQL.
 
 ### 1. Configure Inventory
 
-Edit `ansible/inventories/production/hosts.yml`:
+Edit `ansible/inventories/production/inventory.yml`:
 
 ```yaml
 webservers:

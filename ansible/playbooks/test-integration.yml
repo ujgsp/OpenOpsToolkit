@@ -1,7 +1,7 @@
 ---
 # Integration Test Playbook
 # Test Ansible playbook tanpa systemd (cocok untuk Docker container)
-# Usage: ansible-playbook -i ansible/inventories/test/hosts.yml ansible/playbooks/test-integration.yml
+# Usage: ansible-playbook -i ansible/inventories/test/inventory.yml ansible/playbooks/test-integration.yml
 
 - name: Integration Test — OpenOps Toolkit
   hosts: test-vps

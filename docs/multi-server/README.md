@@ -62,7 +62,7 @@ Multi-server management allows you to:
 ```
 ansible/inventories/
 ├── production/
-│   ├── hosts.yml
+│   ├── inventory.yml
 │   ├── group_vars/
 │   │   ├── all.yml
 │   │   ├── webservers.yml
@@ -81,7 +81,7 @@ ansible/inventories/
 ### 2. Basic Inventory
 
 ```yaml
-# inventories/production/hosts.yml
+# inventories/production/inventory.yml
 all:
   children:
     webservers:
@@ -141,7 +141,7 @@ ansible-playbook -i inventories/production playbooks/site.yml --limit web1
 ### Centralized Inventory
 
 ```yaml
-# inventories/production/hosts.yml
+# inventories/production/inventory.yml
 all:
   children:
     # Web tier

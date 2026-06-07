@@ -19,7 +19,7 @@ Deploy n8n for automating operational tasks with visual workflows.
 
 ### 1. Configure Inventory
 
-Edit `ansible/inventories/production/hosts.yml`:
+Edit `ansible/inventories/production/inventory.yml`:
 
 ```yaml
 # Add n8n server

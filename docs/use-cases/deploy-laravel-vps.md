@@ -68,7 +68,7 @@ cd OpenOpsToolkit
 
 ### Langkah 2: Konfigurasi Inventory
 
-Edit `ansible/inventories/production/hosts.yml`:
+Edit `ansible/inventories/production/inventory.yml`:
 
 ```yaml
 webservers:

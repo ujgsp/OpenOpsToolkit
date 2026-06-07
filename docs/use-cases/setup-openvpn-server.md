@@ -49,7 +49,7 @@ Panduan ini akan memandu Anda untuk deploy server OpenVPN. OpenVPN menyediakan:
 
 ### Langkah 1: Konfigurasi Inventory
 
-Edit `ansible/inventories/production/hosts.yml`:
+Edit `ansible/inventories/production/inventory.yml`:
 
 ```yaml
 vpn_servers:

@@ -8,7 +8,7 @@ Pilih playbook sesuai webserver yang ingin digunakan:
 
 ```bash
 # 1. Edit inventory
-nano ansible/inventories/production/hosts.yml
+nano ansible/inventories/production/inventory.yml
 
 # 2. Jalankan salah satu:
 
