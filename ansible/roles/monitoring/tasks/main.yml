@@ -1,0 +1,79 @@
+---
+# Monitoring Role - Tasks
+# Deploy Uptime Kuma + Prometheus + Grafana via Docker Compose
+# Part of OpenOps Toolkit
+
+- name: Create monitoring directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ monitoring_base_dir }}"
+    - "{{ monitoring_base_dir }}/prometheus"
+    - "{{ monitoring_base_dir }}/grafana"
+    - "{{ monitoring_base_dir }}/grafana/provisioning"
+    - "{{ monitoring_base_dir }}/grafana/provisioning/datasources"
+    - "{{ monitoring_base_dir }}/alertmanager"
+    - "{{ monitoring_base_dir }}/uptime-kuma"
+
+- name: Copy Prometheus config
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ monitoring_base_dir }}/prometheus/prometheus.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart monitoring stack
+
+- name: Copy Alertmanager config
+  template:
+    src: alertmanager.yml.j2
+    dest: "{{ monitoring_base_dir }}/alertmanager/alertmanager.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart monitoring stack
+
+- name: Provision Grafana datasource
+  template:
+    src: grafana-datasource.yml.j2
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/datasources/prometheus.yml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy Docker Compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ monitoring_base_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart monitoring stack
+
+- name: Start monitoring stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_base_dir }}"
+    state: present
+  register: compose_result
+
+- name: Wait for Prometheus
+  uri:
+    url: "http://{{ ansible_host }}:{{ monitoring_prometheus_port }}/-/healthy"
+    status_code: 200
+  register: prometheus_health
+  until: prometheus_health.status == 200
+  retries: 30
+  delay: 10
+
+- name: Wait for Grafana
+  uri:
+    url: "http://{{ ansible_host }}:{{ monitoring_grafana_port }}/api/health"
+    status_code: 200
+  register: grafana_health
+  until: grafana_health.status == 200
+  retries: 30
+  delay: 10

@@ -1,22 +1,25 @@
 ---
 # Monitoring Deployment Playbook
-# Deploy monitoring stack
+# Deploy Uptime Kuma + Prometheus + Grafana monitoring stack
 # Part of OpenOps Toolkit
 
-- name: Deploy Monitoring
+- name: Deploy Monitoring Stack
   hosts: monitoring
   become: yes
+  serial: "50%"
 
   roles:
     - docker
     - ufw
+    - monitoring
 
   vars:
     monitoring_allowed_ports:
-      - '9090'   # Prometheus
-      - '3000'   # Grafana
-      - '9093'   # Alertmanager
-      - '3001'   # Uptime Kuma
+      - "{{ monitoring_uptime_kuma_port }}"
+      - "{{ monitoring_prometheus_port }}"
+      - "{{ monitoring_grafana_port }}"
+      - "{{ monitoring_alertmanager_port }}"
+      - "9100"   # Node Exporter
 
   tasks:
     - name: Allow monitoring ports
@@ -25,66 +28,3 @@
         port: "{{ item }}"
         proto: tcp
       loop: "{{ monitoring_allowed_ports }}"
-
-    - name: Create monitoring directory
-      file:
-        path: /opt/monitoring
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
-
-    - name: Create subdirectories
-      file:
-        path: "/opt/monitoring/{{ item }}"
-        state: directory
-      loop:
-        - prometheus
-        - grafana
-        - grafana/provisioning
-        - grafana/provisioning/datasources
-        - alertmanager
-
-    - name: Copy Prometheus config
-      template:
-        src: templates/prometheus.yml.j2
-        dest: /opt/monitoring/prometheus/prometheus.yml
-
-    - name: Copy Alertmanager config
-      template:
-        src: templates/alertmanager.yml.j2
-        dest: /opt/monitoring/alertmanager/alertmanager.yml
-
-    - name: Provision Grafana datasource
-      template:
-        src: templates/grafana-datasource.yml.j2
-        dest: /opt/monitoring/grafana/provisioning/datasources/prometheus.yml
-
-    - name: Copy Docker Compose
-      template:
-        src: templates/monitoring-docker-compose.yml.j2
-        dest: /opt/monitoring/docker-compose.yml
-
-    - name: Start monitoring stack
-      community.docker.docker_compose_v2:
-        project_src: /opt/monitoring
-        state: present
-      register: compose_result
-
-    - name: Wait for Prometheus
-      uri:
-        url: "http://{{ ansible_host }}:9090/-/healthy"
-        status_code: 200
-      register: prometheus_health
-      until: prometheus_health.status == 200
-      retries: 30
-      delay: 10
-
-    - name: Wait for Grafana
-      uri:
-        url: "http://{{ ansible_host }}:3000/api/health"
-        status_code: 200
-      register: grafana_health
-      until: grafana_health.status == 200
-      retries: 30
-      delay: 10

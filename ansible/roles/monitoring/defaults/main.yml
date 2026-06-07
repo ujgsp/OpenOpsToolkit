@@ -1,0 +1,24 @@
+---
+# Monitoring Role - Default Variables
+# Part of OpenOps Toolkit
+
+# Directories
+monitoring_base_dir: /opt/monitoring
+monitoring_data_dir: "{{ monitoring_base_dir }}/data"
+
+# Ports
+monitoring_uptime_kuma_port: '3001'
+monitoring_prometheus_port: '9090'
+monitoring_grafana_port: '3000'
+monitoring_alertmanager_port: '9093'
+
+# Grafana
+monitoring_grafana_admin_password: "{{ vault_grafana_admin_password | default('admin') }}"
+
+# Prometheus retention
+monitoring_prometheus_retention: "30d"
+
+# Alertmanager
+monitoring_alertmanager_email_to: ""
+monitoring_alertmanager_smtp_from: ""
+monitoring_alertmanager_smtp_host: ""

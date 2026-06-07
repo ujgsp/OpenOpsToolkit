@@ -1,0 +1,18 @@
+---
+# Monitoring Role - Meta
+# Part of OpenOps Toolkit
+
+galaxy_info:
+  role_name: monitoring
+  author: OpenOps Toolkit
+  description: Deploy Uptime Kuma + Prometheus + Grafana monitoring stack
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+
+dependencies:
+  - role: docker
