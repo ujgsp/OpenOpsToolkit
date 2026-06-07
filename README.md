@@ -12,7 +12,7 @@
 
 ## Apa yang Bisa Saya Lakukan Dengan Ini?
 
-✅ **Deploy Laravel** ke VPS dalam hitungan menit (Ubuntu 22.04 + Nginx + PHP 8.2 + MySQL)
+✅ **Deploy Laravel** ke VPS dalam hitungan menit (Ubuntu 22.04/24.04 + Nginx + PHP 8.2/8.3 + MySQL)
 
 ✅ **Deploy WordPress** dengan satu perintah
 
@@ -68,9 +68,9 @@ Tool DevOps enterprise sering kali:
 
 ### Prasyarat
 
-- Ubuntu Server 22.04 LTS (1 VPS)
+- Ubuntu Server 22.04/24.04 LTS (1 VPS)
 - Akses SSH ke server Anda
-- Git terinstall di komputer Anda
+- Git dan Ansible terinstall di komputer Anda
 
 ### 1. Clone Repository
 
@@ -85,16 +85,19 @@ cd OpenOpsToolkit
 # Edit inventory dengan IP server Anda
 nano ansible/inventories/production/hosts.yml
 
+# Buat vault file untuk credentials
+ansible-vault create ansible/inventories/production/group_vars/all/vault.yml
+
 # Pilih webserver yang ingin digunakan:
 
 # Opsi 1: Nginx (paling umum)
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml --ask-vault-pass
 
 # Opsi 2: Apache2
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml --ask-vault-pass
 
 # Opsi 3: OpenLiteSpeed
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-ols.yml
+ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-ols.yml --ask-vault-pass
 ```
 
 **Hasil**: Aplikasi Laravel berjalan di `http://ip-server-anda`
@@ -158,16 +161,28 @@ docker-compose up -d
 
 ## Modul yang Tersedia
 
+### Keamanan & Best Practices
+
+| Fitur | Deskripsi |
+|-------|----------|
+| **Ansible Vault** | Semua credentials (password, token, API key) wajib pakai vault |
+| **UFW Firewall** | Deny-default policy, allow SSH/HTTP/HTTPS secara otomatis |
+| **Rolling Deploy** | `serial: 50%` — deploy bertahap, zero-downtime |
+| **Idempotent Tasks** | Semua task bisa di-run ulang tanpa side effect |
+| **SSL Certificate Check** | Cek existing cert sebelum request certbot baru |
+
 ### Ansible Roles
 
 | Role | Deskripsi | Kebutuhan |
 |------|-----------|-----------|
-| `laravel` | Deploy aplikasi Laravel | Ubuntu 22.04, Nginx, PHP 8.2, MySQL |
-| `wordpress` | Deploy WordPress | Ubuntu 22.04, Nginx, PHP 8.2, MySQL |
-| `n8n` | Deploy automation n8n | Ubuntu 22.04, Docker |
-| `docker` | Install Docker CE | Ubuntu 22.04 |
-| `openvpn` | Setup server OpenVPN | Ubuntu 22.04 |
-| `vaultwarden` | Deploy Vaultwarden | Ubuntu 22.04, Docker |
+| `laravel` | Deploy aplikasi Laravel | Ubuntu 22.04+, Nginx, PHP 8.2+, MySQL |
+| `wordpress` | Deploy WordPress | Ubuntu 22.04+, Nginx, PHP 8.2+, MySQL |
+| `n8n` | Deploy automation n8n | Ubuntu 22.04+, Docker |
+| `docker` | Install Docker CE | Ubuntu 22.04+ |
+| `openvpn` | Setup server OpenVPN | Ubuntu 22.04+ |
+| `vaultwarden` | Deploy Vaultwarden | Ubuntu 22.04+, Docker |
+| `nginx` | Konfigurasi Nginx + virtual host | Ubuntu 22.04+ |
+| `ufw` | Firewall UFW (deny-default, allow SSH/HTTP/HTTPS) | Ubuntu 22.04+ |
 
 ### Workflow n8n
 
@@ -295,7 +310,8 @@ ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml --
 - [x] Orkestrasi deployment
 
 ### 🚧 v1.0.0 — Rilis Stabil (Dalam Proses)
-- [ ] Testing integrasi
+- [x] Testing integrasi (39/39 tasks passed)
+- [x] Ansible best practices (vault, UFW, rolling deploy, idempotency)
 - [ ] Tutorial video
 - [ ] Kontribusi komunitas
 - [ ] Benchmark performa
@@ -307,14 +323,17 @@ ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml --
 ```
 OpenOpsToolkit/
 ├── ansible/              # Otomasi infrastruktur
-│   ├── roles/            # 6 Ansible roles
+│   ├── ansible.cfg       # Konfigurasi default (pipelining, YAML output)
+│   ├── roles/            # 8 Ansible roles
 │   ├── playbooks/        # Playbook deployment
+│   │   ├── templates/    # Jinja2 templates (configs, Grafana)
+│   │   └── webserver/    # Webserver task files
 │   └── inventories/      # Inventaris server
 ├── n8n/                  # Otomasi workflow
 ├── monitoring/           # Monitoring stack
 ├── docs/                 # Dokumentasi
 ├── examples/             # Contoh mulai cepat
-└── scripts/              # Script utilitas
+└── scripts/              # Script utilitas (backup, health check)
 ```
 
 ---
