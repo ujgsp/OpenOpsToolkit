@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No changes yet. All changes are documented in the releases below.
 
+## [v0.4.3] - 2026-06-11
+
+### Fixed
+- Release workflow updated for flattened repository structure
+- Updated directory copy commands (playbooks, roles, inventories)
+- Removed references to old directories (ansible, n8n, monitoring, scripts)
+- Added ansible.cfg and VERSION to release archive
+
 ## [v0.4.0] - 2026-06-11
 
 ### Added
