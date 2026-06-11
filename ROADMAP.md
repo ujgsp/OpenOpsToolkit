@@ -43,6 +43,7 @@ Menjadi toolkit DevOps open source utama untuk developer Indonesia, menyediakan 
 - [x] Code quality checks
 - [x] Release automation
 - [x] Linting configuration
+- [x] Flatten repository structure for simpler command execution
 
 ---
 
@@ -53,6 +54,7 @@ Menjadi toolkit DevOps open source utama untuk developer Indonesia, menyediakan 
 - Production-ready CI/CD
 - Release automation scripts
 - Code quality checks
+- Flattened repository structure for simpler command execution
 
 ### v0.3.0 (June 2026)
 - AI Ops documentation

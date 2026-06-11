@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation (README, ROADMAP, CONTRIBUTING, SECURITY)
 - Example scripts and configurations
 
+### Changed
+- **Flatten repository structure**: Moved `ansible/` directory contents to repository root for simpler command execution (no more `cd ansible/` needed)
+  - `ansible.cfg`, `playbooks/`, `roles/`, `inventories/` now at root
+  - Updated all documentation references to reflect new paths
+  - Maintained backward compatibility: all Ansible commands work from root
+
 ## [0.1.0] - 2026-06-01
 
 ### Added

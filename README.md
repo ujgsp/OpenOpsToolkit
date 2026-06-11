@@ -347,6 +347,8 @@ OpenOpsToolkit/
     └── scripts/          # Script utilitas (backup, health check)
 ```
 
+**Catatan**: Semua command Ansible bisa dijalankan dari root repository tanpa perlu `cd ansible/`.
+
 ---
 
 ## Berkontribusi
