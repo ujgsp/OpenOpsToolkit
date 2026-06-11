@@ -61,9 +61,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Release Notes
 
-### v0.4.0 (Multi-Server & Production Ready)
+## [v0.4.0] - 2026-06-11
 
-**Release Date**: June 2026
+### Added
+- Gatus uptime monitoring (replaced Uptime Kuma)
+- Telegram alerting integration
+- Flattened repository structure
+- 12 Ansible roles for complete infrastructure automation
+- Comprehensive testing and documentation
+
+### Changed
+- Monitoring port from 3001 to 8080 (Gatus)
+- Repository structure flattened (ansible/ directory removed)
+- Updated all documentation and examples
+
+### Breaking Changes
+- Repository structure flattened (ansible/ directory removed)
+- Monitoring port changed from 3001 to 8080 (Gatus)
+- New variables: `vault_gatus_telegram_token`, `vault_gatus_telegram_chat_id`
+
+### Upgrade Path
+1. Update inventory to use new paths (no more ansible/ prefix)
+2. Update monitoring variables (port 8080 instead of 3001)
+3. Configure Telegram alerting variables
 
 **Highlights**:
 - Flattened repository structure for simpler command execution
@@ -147,19 +167,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI incident summary (nginx/apache/laravel logs)
 - AI GitHub issue summarization
 - Log analysis automation
-
-### v0.4.0 (Multi-Server & Production Ready) ✅ CURRENT
-**Release Date**: June 2026
-
-**Implemented Features**:
-- Multi-server management
-- Centralized inventory template
-- Deployment orchestration playbooks
-- Complete documentation
-- CI/CD pipeline (GitHub Actions)
-- Code quality checks
-- Release automation
-- Flattened repository structure
 
 ### v1.0.0 (Stable Release)
 **Target**: Q3 2026
