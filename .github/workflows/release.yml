@@ -89,9 +89,9 @@ jobs:
           # Create release directory
           mkdir -p release/openops-toolkit-${{ github.ref_name }}
           
-          # Copy files
-          cp -r ansible n8n monitoring scripts docs examples .github release/openops-toolkit-${{ github.ref_name }}/
-          cp README.md ROADMAP.md CONTRIBUTING.md SECURITY.md CHANGELOG.md LICENSE release/openops-toolkit-${{ github.ref_name }}/
+          # Copy files (updated for flattened structure)
+          cp -r playbooks roles inventories docs examples .github release/openops-toolkit-${{ github.ref_name }}/
+          cp ansible.cfg README.md ROADMAP.md CONTRIBUTING.md SECURITY.md CHANGELOG.md LICENSE VERSION release/openops-toolkit-${{ github.ref_name }}/
           
           # Create archive
           cd release
