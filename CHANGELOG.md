@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No changes yet. All changes are documented in the releases below.
 
+## [v0.4.4] - 2026-06-11
+
+### Fixed
+- Simplified release workflow
+- Removed problematic update-docs job
+- Maintain CHANGELOG.md manually with proper format
+
 ## [v0.4.3] - 2026-06-11
 
 ### Fixed
