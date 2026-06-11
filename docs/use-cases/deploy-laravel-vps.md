@@ -68,7 +68,7 @@ cd OpenOpsToolkit
 
 ### Langkah 2: Konfigurasi Inventory
 
-Edit `ansible/inventories/production/inventory.yml`:
+Edit `inventories/production/inventory.yml`:
 
 ```yaml
 webservers:
@@ -81,7 +81,7 @@ webservers:
 
 ### Langkah 3: Konfigurasi Aplikasi
 
-Edit `ansible/inventories/production/group_vars/all.yml`:
+Edit `inventories/production/group_vars/all.yml`:
 
 ```yaml
 # Aplikasi
@@ -106,13 +106,13 @@ Pilih webserver yang ingin digunakan:
 
 ```bash
 # Opsi 1: Nginx (paling umum, direkomendasikan)
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml
+ansible-playbook -i inventories/production playbooks/laravel-nginx.yml
 
 # Opsi 2: Apache2
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml
+ansible-playbook -i inventories/production playbooks/laravel-apache.yml
 
 # Opsi 3: OpenLiteSpeed (performa tinggi)
-ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-ols.yml
+ansible-playbook -i inventories/production playbooks/laravel-ols.yml
 ```
 
 ### Langkah 5: Verifikasi Deployment

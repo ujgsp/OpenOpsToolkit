@@ -12,7 +12,7 @@ Deploy Uptime Kuma, Grafana, and Prometheus for monitoring your servers and webs
 ## Requirements
 
 - Ubuntu 22.04 LTS VPS (2GB+ RAM recommended)
-- Docker installed (use `ansible/roles/docker` if needed)
+- Docker installed (use `roles/docker` if needed)
 
 ## Quick Start
 

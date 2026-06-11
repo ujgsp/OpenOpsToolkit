@@ -303,8 +303,69 @@
       - Nginx: systemctl status nginx
       - PHP-FPM: systemctl status php{{ php_version }}-fpm
       - MySQL: systemctl status mysql
+      {% if scheduler_enabled %}
+      - Scheduler: php artisan schedule:list
+      {% endif %}
+      {% if queue_worker_enabled %}
+      - Queue Worker: supervisorctl status {{ app_name }}-queue*
+      {% endif %}
       
       Logs:
       - Nginx: /var/log/nginx/
       - PHP-FPM: /var/log/php{{ php_version }}-fpm.log
       - Laravel: /var/www/{{ app_name }}/storage/logs/
+
+# ============================================
+# Scheduler Setup (Service 2: Beresin Deploy Laravel)
+# ============================================
+
+- name: Setup Laravel Scheduler Cron
+  cron:
+    name: "Laravel Scheduler - {{ app_name }}"
+    minute: "{{ scheduler_cron_minute }}"
+    hour: "{{ scheduler_cron_hour }}"
+    job: "cd /var/www/{{ app_name }} && php artisan schedule:run >> /dev/null 2>&1"
+    user: www-data
+    state: present
+  when: scheduler_enabled | bool
+
+# ============================================
+# Queue Worker Setup (Service 2: Beresin Deploy Laravel)
+# ============================================
+
+- name: Install Supervisor
+  apt:
+    name: supervisor
+    state: present
+  when: queue_worker_enabled | bool
+
+- name: Ensure Supervisor is running
+  systemd:
+    name: supervisor
+    state: started
+    enabled: yes
+  when: queue_worker_enabled | bool
+
+- name: Create Supervisor program for Queue Worker
+  template:
+    src: supervisor-queue.conf.j2
+    dest: "/etc/supervisor/conf.d/{{ app_name }}-queue.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  when: queue_worker_enabled | bool
+  notify: reload supervisor
+
+- name: Reread Supervisor configuration
+  supervisorctl:
+    name: "{{ app_name }}-queue"
+    state: present
+  when: queue_worker_enabled | bool
+  ignore_errors: yes
+
+- name: Restart Queue Worker
+  supervisorctl:
+    name: "{{ app_name }}-queue"
+    state: restarted
+  when: queue_worker_enabled | bool
+  ignore_errors: yes

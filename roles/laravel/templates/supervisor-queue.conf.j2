@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+# Supervisor Configuration for Laravel Queue Worker
+# {{ app_name }}
+
+{% for program in supervisor_programs %}
+[program:{{ program.name }}]
+process_name=%(program_name)s_%(process_num)02d
+command={{ program.command }}
+autostart={{ program.autostart | lower }}
+autorestart={{ program.autorestart | lower }}
+user={{ program.user }}
+numprocs={{ program.numprocs | default(1) }}
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/{{ program.name }}.log
+stopwaitsecs=3600
+stopsignal=QUIT
+environment=APP_ENV="{{ app_env }}",APP_DEBUG="{{ 'true' if app_env == 'local' else 'false' }}"
+directory={{ program.directory }}
+
+{% endfor %}

@@ -14,7 +14,7 @@ Workflow templates untuk integrasi n8n dengan monitoring stack.
 
 1. Deploy n8n menggunakan Ansible role:
    ```bash
-   ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml --limit n8n_servers --ask-vault-pass
+   ansible-playbook -i inventories/production playbooks/site.yml --limit n8n_servers --ask-vault-pass
    ```
 
 2. Buka dashboard n8n

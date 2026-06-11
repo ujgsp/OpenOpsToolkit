@@ -1,0 +1,24 @@
+---
+# Server Hardening Role - Defaults
+
+# SSH Configuration
+ssh_port: 22
+ssh_permit_root_login: "prohibit-password"
+ssh_password_authentication: "no"
+ssh_pubkey_authentication: "yes"
+ssh_max_auth_tries: 3
+ssh_client_alive_interval: 300
+ssh_client_alive_count_max: 2
+
+# Fail2Ban Configuration
+fail2ban_bantime: "3600"
+fail2ban_findtime: "600"
+fail2ban_maxretry: 5
+fail2ban_ignoreip: "127.0.0.1/8"
+
+# System Configuration
+server_timezone: "Asia/Jakarta"
+server_swap_size: "2G"
+
+# Unattended Upgrades
+auto_security_updates: true

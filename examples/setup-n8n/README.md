@@ -12,14 +12,14 @@ Deploy n8n for automating operational tasks with visual workflows.
 ## Requirements
 
 - Ubuntu 22.04 LTS VPS (2GB+ RAM recommended)
-- Docker installed (use `ansible/roles/docker` if needed)
+- Docker installed (use `roles/docker` if needed)
 - Domain name (optional, for SSL)
 
 ## Quick Start
 
 ### 1. Configure Inventory
 
-Edit `ansible/inventories/production/inventory.yml`:
+Edit `inventories/production/inventory.yml`:
 
 ```yaml
 # Add n8n server
@@ -33,7 +33,7 @@ n8n_servers:
 
 ### 2. Configure Variables
 
-Edit `ansible/inventories/production/group_vars/n8n_servers.yml`:
+Edit `inventories/production/group_vars/n8n_servers.yml`:
 
 ```yaml
 n8n_domain: n8n.yourdomain.com
@@ -46,7 +46,7 @@ n8n_ssl_email: your@email.com
 ### 3. Deploy
 
 ```bash
-ansible-playbook -i ansible/inventories/production ansible/roles/n8n/tasks/main.yml
+ansible-playbook -i inventories/production roles/n8n/tasks/main.yml
 ```
 
 ### 4. Verify

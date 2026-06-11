@@ -60,7 +60,7 @@ Multi-server management allows you to:
 ### 1. Inventory Structure
 
 ```
-ansible/inventories/
+inventories/
 ├── production/
 │   ├── inventory.yml
 │   ├── group_vars/

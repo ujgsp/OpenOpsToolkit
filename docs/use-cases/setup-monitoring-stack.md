@@ -50,7 +50,7 @@ Panduan ini akan memandu Anda untuk deploy stack monitoring lengkap menggunakan 
 
 ```bash
 # Menggunakan Ansible role
-ansible-playbook -i ansible/inventories/production ansible/roles/docker/tasks/main.yml
+ansible-playbook -i inventories/production roles/docker/tasks/main.yml
 
 # Atau secara manual
 sudo apt update

@@ -47,3 +47,14 @@
   systemd:
     name: lsws
     state: reloaded
+
+# Supervisor handlers
+- name: reload supervisor
+  systemd:
+    name: supervisor
+    state: reloaded
+
+- name: restart supervisor
+  systemd:
+    name: supervisor
+    state: restarted

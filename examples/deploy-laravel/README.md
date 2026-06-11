@@ -21,7 +21,7 @@ Deploy a Laravel application to Ubuntu 22.04 VPS with Nginx, PHP 8.2, and MySQL.
 
 ### 1. Configure Inventory
 
-Edit `ansible/inventories/production/inventory.yml`:
+Edit `inventories/production/inventory.yml`:
 
 ```yaml
 webservers:
@@ -34,7 +34,7 @@ webservers:
 
 ### 2. Configure Variables
 
-Edit `ansible/inventories/production/group_vars/all.yml`:
+Edit `inventories/production/group_vars/all.yml`:
 
 ```yaml
 app_name: myapp
@@ -54,7 +54,7 @@ ssl_email: your@email.com
 
 ```bash
 # From repository root
-ansible-playbook -i ansible/inventories/production ansible/playbooks/site.yml
+ansible-playbook -i inventories/production playbooks/site.yml
 ```
 
 ### 4. Verify

@@ -1,23 +1,23 @@
 ---
-# Deploy Laravel dengan Nginx
+# Deploy Laravel dengan OpenLiteSpeed
 # Part of OpenOps Toolkit
 #
 # Usage:
-#   ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-nginx.yml
+#   ansible-playbook -i inventories/production playbooks/laravel-ols.yml
 #
 # Prasyarat:
 #   - Ubuntu 22.04 LTS
 #   - SSH access dengan sudo
-#   - Edit inventory di ansible/inventories/production/inventory.yml
+#   - Edit inventory di inventories/production/inventory.yml
 
-- name: Deploy Laravel dengan Nginx
+- name: Deploy Laravel dengan OpenLiteSpeed
   hosts: webservers
   become: yes
   gather_facts: yes
   serial: "50%"
 
   vars:
-    laravel_webserver_type: "nginx"
+    laravel_webserver_type: "openlitespeed"
 
   vars_files:
     - ../inventories/group_vars/webservers.yml
@@ -27,7 +27,7 @@
       debug:
         msg: |
           ========================================
-          Deploy Laravel + Nginx
+          Deploy Laravel + OpenLiteSpeed
           ========================================
           App: {{ laravel_app_name }}
           Domain: {{ laravel_domain }}
@@ -48,21 +48,23 @@
         ssl_email: "{{ laravel_ssl_email }}"
 
   tasks:
-    - name: Konfigurasi Nginx
-      include_tasks: "webserver/nginx.yml"
+    - name: Konfigurasi OpenLiteSpeed
+      include_tasks: "webserver/openlitespeed.yml"
 
     - name: Deploy selesai
       debug:
         msg: |
           ========================================
-          ✅ Deploy Laravel + Nginx Selesai!
+          ✅ Deploy Laravel + OpenLiteSpeed Selesai!
           ========================================
 
           URL: http{% if laravel_ssl_enabled %}s{% endif %}://{{ laravel_domain }}
-          Webserver: Nginx
+          Webserver: OpenLiteSpeed
 
           Cek status:
-            systemctl status nginx
-            systemctl status php{{ php_version | default('8.2') }}-fpm
+            systemctl status lsws
+
+          Dashboard:
+            http://{{ laravel_domain }}:7080
 
           ========================================

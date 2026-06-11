@@ -82,8 +82,6 @@ cd OpenOpsToolkit
 ### 2. Deploy Laravel (Contoh)
 
 ```bash
-# Masuk ke direktori ansible
-cd ansible/
 
 # Edit inventory dengan IP server Anda
 nano inventories/production/inventory.yml
@@ -109,7 +107,7 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/laravel-ols.y
 
 ```bash
 # Deploy monitoring stack via Ansible
-ansible-playbook -i ansible/inventories/production ansible/playbooks/monitoring.yml --ask-vault-pass
+ansible-playbook -i inventories/production playbooks/monitoring.yml --ask-vault-pass
 ```
 
 **Hasil**: 
@@ -123,7 +121,7 @@ Jika Anda ingin menerima alert Telegram:
 
 1. Deploy n8n:
    ```bash
-   cd ansible/
+
    ansible-playbook -i inventories/production/inventory.yml playbooks/site.yml --limit n8n_servers --ask-vault-pass
    ```
 2. Buka dashboard n8n
@@ -213,7 +211,6 @@ Jika Anda ingin menerima alert Telegram:
 
 Deploy:
 ```bash
-cd ansible/
 ansible-playbook -i inventories/production/inventory.yml playbooks/monitoring.yml --ask-vault-pass
 ```
 
@@ -228,7 +225,6 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/monitoring.ym
 ```bash
 # 1. Dapatkan kredensial VPS klien
 # 2. Update inventory
-cd ansible/
 nano inventories/production/inventory.yml
 
 # 3. Deploy
@@ -249,7 +245,6 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/site.yml --as
 
 ```bash
 # 1. Deploy monitoring stack
-cd ansible/
 ansible-playbook -i inventories/production/inventory.yml playbooks/monitoring.yml --ask-vault-pass
 
 # 2. Buka Uptime Kuma, tambahkan semua domain
@@ -269,7 +264,6 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/monitoring.ym
 
 ```bash
 # 1. Deploy OpenVPN
-cd ansible/
 ansible-playbook -i inventories/production/inventory.yml playbooks/site.yml --limit vpn_servers --ask-vault-pass
 
 # 2. Generate konfigurasi klien
@@ -298,7 +292,7 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/site.yml --li
 - [Utility Scripts](examples/scripts/)
 
 ### Dokumentasi Teknis
-- [Ansible Roles](ansible/roles/)
+- [Ansible Roles](roles/)
 - [AI Ops](docs/aiops/)
 - [Multi-Server](docs/multi-server/)
 
@@ -341,13 +335,12 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/site.yml --li
 
 ```
 OpenOpsToolkit/
-├── ansible/              # Fokus utama — otomasi infrastruktur
-│   ├── ansible.cfg       # Konfigurasi default (pipelining, YAML output)
-│   ├── roles/            # 9 Ansible roles (laravel, wordpress, n8n, monitoring, dll)
-│   ├── playbooks/        # Playbook deployment
-│   │   ├── templates/    # Jinja2 templates (webserver configs)
-│   │   └── webserver/    # Webserver task files
-│   └── inventories/      # Inventaris server
+├── ansible.cfg           # Konfigurasi Ansible (pipelining, YAML output)
+├── roles/                # 9 Ansible roles (laravel, wordpress, n8n, monitoring, dll)
+├── playbooks/            # Playbook deployment
+│   ├── templates/        # Jinja2 templates (webserver configs)
+│   └── webserver/        # Webserver task files
+├── inventories/          # Inventaris server
 ├── docs/                 # Dokumentasi
 └── examples/             # Contoh mulai cepat
     ├── n8n-workflows/    # Template workflow n8n (opsional)

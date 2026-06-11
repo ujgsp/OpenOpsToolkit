@@ -1,0 +1,107 @@
+---
+# =====================================================
+# Setup Server Ubuntu Basic
+# Service 1 - Rp 500.000
+# =====================================================
+# Playbook untuk setup server Ubuntu dari nol:
+# - Hardening (SSH, Fail2Ban, Kernel)
+# - Firewall (UFW)
+# - Web Server (Nginx + PHP)
+# - Database (MySQL)
+# - SSL Certificate (Certbot)
+# - Backup otomatis
+# - Monitoring basic
+#
+# Usage:
+# ansible-playbook -i inventories/production/inventory.yml playbooks/setup-server.yml --ask-vault-pass
+#
+# Variabel wajib di inventory:
+# - server_domain: Domain untuk SSL
+# - server_email: Email untuk Certbot
+# - db_name: Nama database
+# - db_user: Username database
+# - db_password: Password database (vault)
+# =====================================================
+
+- name: Setup Server Ubuntu Basic
+  hosts: setup_servers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    # Default values (override in inventory)
+    ssh_port: 22
+    server_timezone: "Asia/Jakarta"
+    ssl_enabled: true
+    backup_enabled: true
+    monitoring_enabled: true
+
+  pre_tasks:
+    - name: Display setup information
+      debug:
+        msg: |
+          ========================================
+          Setup Server Ubuntu Basic
+          Domain: {{ server_domain | default('not set') }}
+          Timezone: {{ server_timezone }}
+          ========================================
+
+  roles:
+    # 1. Server Hardening (SSH, Fail2Ban, Kernel)
+    - role: server-hardening
+      tags: [hardening, security]
+
+    # 2. Firewall Configuration
+    - role: ufw
+      tags: [firewall, security]
+
+    # 3. Web Server (Nginx + PHP)
+    - role: nginx
+      when: install_nginx | default(true) | bool
+      tags: [webserver, nginx]
+
+    # 4. SSL Certificate
+    - role: certbot
+      when: ssl_enabled | bool
+      tags: [ssl, certbot]
+
+    # 5. Backup Configuration
+    - role: server-backup
+      when: backup_enabled | bool
+      tags: [backup]
+
+    # 6. Monitoring (optional)
+    - role: monitoring
+      when: monitoring_enabled | default(false) | bool
+      tags: [monitoring]
+
+  post_tasks:
+    - name: Display setup completion
+      debug:
+        msg: |
+          ========================================
+          ✅ Server Setup Completed!
+          
+          Server: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4.address | default('N/A') }}
+          Domain: {{ server_domain | default('N/A') }}
+          
+          Services:
+          - SSH: Port {{ ssh_port }}
+          - UFW: Active
+          - Fail2Ban: Active
+          {% if install_nginx | default(true) | bool %}
+          - Nginx: Active
+          {% endif %}
+          {% if ssl_enabled | bool %}
+          - SSL: Configured
+          {% endif %}
+          {% if backup_enabled | bool %}
+          - Backup: Daily at {{ backup_hour }}:{{ backup_minute }}
+          {% endif %}
+          
+          Next Steps:
+          1. Verify SSH access: ssh -p {{ ssh_port }} root@{{ server_domain | default(ansible_default_ipv4.address) }}
+          2. Check services: systemctl status nginx ufw fail2ban
+          3. Test SSL: curl -I https://{{ server_domain }}
+          ========================================

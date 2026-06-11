@@ -34,6 +34,29 @@ cache_driver: "file"
 session_driver: "file"
 queue_driver: "sync"
 
+# Scheduler & Queue (Service 2: Beresin Deploy Laravel)
+scheduler_enabled: false
+scheduler_cron_minute: "*"
+scheduler_cron_hour: "*"
+
+queue_worker_enabled: false
+queue_worker_connection: "database"
+queue_worker_queue: "default"
+queue_worker_sleep: "3"
+queue_worker_tries: "3"
+queue_worker_max_time: "3600"
+queue_worker_processes: 1
+
+# Supervisor (for Queue Worker)
+supervisor_programs:
+  - name: "{{ app_name }}-queue"
+    command: "php artisan queue:work {{ queue_worker_connection }} --queue={{ queue_worker_queue }} --sleep={{ queue_worker_sleep }} --tries={{ queue_worker_tries }} --max-time={{ queue_worker_max_time }}"
+    user: "www-data"
+    directory: "/var/www/{{ app_name }}"
+    autostart: true
+    autorestart: true
+    numprocs: {{ queue_worker_processes }}
+
 # Redis (optional)
 redis_host: "127.0.0.1"
 redis_port: "6379"

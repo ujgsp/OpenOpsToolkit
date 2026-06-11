@@ -1,0 +1,42 @@
+# {{ ansible_managed }}
+# SSH Server Configuration - Hardened
+
+Port {{ ssh_port }}
+AddressFamily any
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+# Authentication
+PermitRootLogin {{ ssh_permit_root_login }}
+PubkeyAuthentication {{ ssh_pubkey_authentication }}
+PasswordAuthentication {{ ssh_password_authentication }}
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Security Settings
+MaxAuthTries {{ ssh_max_auth_tries }}
+MaxSessions 10
+LoginGraceTime 30
+ClientAliveInterval {{ ssh_client_alive_interval }}
+ClientAliveCountMax {{ ssh_client_alive_count_max }}
+
+# Disable unused authentication methods
+KerberosAuthentication no
+GSSAPIAuthentication no
+HostbasedAuthentication no
+PermitEmptyPasswords no
+
+# Disable X11 and TCP forwarding (optional - uncomment if not needed)
+# X11Forwarding no
+# AllowTcpForwarding no
+# AllowAgentForwarding no
+
+# Logging
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# Miscellaneous
+PrintMotd no
+PrintLastLog yes
+TCPKeepAlive yes
+UseDNS no

@@ -1,0 +1,49 @@
+# {{ ansible_managed }}
+# Fail2Ban Configuration
+
+[DEFAULT]
+# Ban for 1 hour
+bantime = {{ fail2ban_bantime }}
+# Detection window
+findtime = {{ fail2ban_findtime }}
+# Max retries before ban
+maxretry = {{ fail2ban_maxretry }}
+# Ignore localhost
+ignoreip = {{ fail2ban_ignoreip }} {{ ssh_ignore_ip | default('') }}
+
+# Default ban action (iptables)
+banaction = iptables-multiport
+
+# Email notifications (optional - configure if needed)
+# destemail = your@email.com
+# sender = fail2ban@yourdomain.com
+# action = %(action_mwl)s
+
+[sshd]
+enabled = true
+port = {{ ssh_port }}
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 86400
+
+[nginx-http-auth]
+enabled = true
+port = http,https
+filter = nginx-http-auth
+logpath = /var/log/nginx/error.log
+maxretry = 5
+
+[nginx-botsearch]
+enabled = true
+port = http,https
+filter = nginx-botsearch
+logpath = /var/log/nginx/access.log
+maxretry = 5
+
+[nginx-limit-req]
+enabled = true
+port = http,https
+filter = nginx-limit-req
+logpath = /var/log/nginx/error.log
+maxretry = 10

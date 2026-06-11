@@ -1,0 +1,29 @@
+---
+# Server Backup Role - Defaults
+
+# Backup Configuration
+backup_enabled: true
+backup_path: "/var/backups/server"
+backup_retention_days: 7
+
+# Database Backup (set to true if MySQL is present)
+backup_mysql: true
+backup_mysql_databases: []  # Empty = backup all databases
+backup_mysql_user: root
+backup_mysql_password: ""  # Use Ansible Vault for this
+
+# File Backup
+backup_paths:
+  - /etc/nginx
+  - /etc/ssh
+  - /var/www
+
+# Cron Schedule
+backup_hour: "2"
+backup_minute: "0"
+
+# Notification (optional)
+backup_notify_email: ""
+backup_notify_telegram: false
+backup_telegram_bot_token: ""
+backup_telegram_chat_id: ""

@@ -1,0 +1,106 @@
+---
+# Server Backup Role - Main Tasks
+
+# 1. Create Backup Directory
+- name: Create backup directory
+  file:
+    path: "{{ backup_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+  when: backup_enabled | bool
+
+# 2. Install Backup Dependencies
+- name: Install backup dependencies
+  apt:
+    name:
+      - pigz
+      - pv
+    state: present
+  when: backup_enabled | bool
+
+# 3. Deploy Backup Script
+- name: Deploy backup script
+  template:
+    src: backup.sh.j2
+    dest: /usr/local/bin/server-backup.sh
+    owner: root
+    group: root
+    mode: '0750'
+  when: backup_enabled | bool
+
+# 4. Deploy MySQL Backup Script
+- name: Deploy MySQL backup script
+  template:
+    src: backup-mysql.sh.j2
+    dest: /usr/local/bin/server-backup-mysql.sh
+    owner: root
+    group: root
+    mode: '0750'
+  when:
+    - backup_enabled | bool
+    - backup_mysql | bool
+
+# 5. Deploy Cleanup Script
+- name: Deploy cleanup script
+  template:
+    src: cleanup.sh.j2
+    dest: /usr/local/bin/server-backup-cleanup.sh
+    owner: root
+    group: root
+    mode: '0750'
+  when: backup_enabled | bool
+
+# 6. Setup Cron Jobs
+- name: Setup daily backup cron
+  cron:
+    name: "Server Backup - Daily"
+    minute: "{{ backup_minute }}"
+    hour: "{{ backup_hour }}"
+    job: "/usr/local/bin/server-backup.sh >> /var/log/server-backup.log 2>&1"
+    user: root
+    state: present
+  when: backup_enabled | bool
+
+- name: Setup daily MySQL backup cron
+  cron:
+    name: "MySQL Backup - Daily"
+    minute: "{{ backup_minute | int + 5 }}"
+    hour: "{{ backup_hour }}"
+    job: "/usr/local/bin/server-backup-mysql.sh >> /var/log/server-backup-mysql.log 2>&1"
+    user: root
+    state: present
+  when:
+    - backup_enabled | bool
+    - backup_mysql | bool
+
+- name: Setup weekly cleanup cron
+  cron:
+    name: "Backup Cleanup - Weekly"
+    minute: "0"
+    hour: "3"
+    weekday: "0"
+    job: "/usr/local/bin/server-backup-cleanup.sh >> /var/log/server-backup-cleanup.log 2>&1"
+    user: root
+    state: present
+  when: backup_enabled | bool
+
+# 7. Configure Logrotate for backup logs
+- name: Configure logrotate for backup logs
+  copy:
+    content: |
+      /var/log/server-backup*.log {
+          weekly
+          rotate 4
+          compress
+          delaycompress
+          missingok
+          notifempty
+          create 0640 root adm
+      }
+    dest: /etc/logrotate.d/server-backup
+    owner: root
+    group: root
+    mode: '0644'
+  when: backup_enabled | bool

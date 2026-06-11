@@ -83,26 +83,32 @@ check_documentation() {
 check_ansible_structure() {
     log_info "Checking Ansible structure..."
     
-    if [ -d "ansible" ]; then
-        log_success "ansible/ directory exists"
-        
-        if [ -d "ansible/roles" ]; then
-            log_success "ansible/roles/ exists"
-            
-            # Count roles
-            ROLE_COUNT=$(ls -d ansible/roles/*/ 2>/dev/null | wc -l)
-            log_info "Found $ROLE_COUNT Ansible roles"
-        else
-            log_error "ansible/roles/ missing"
-        fi
-        
-        if [ -d "ansible/playbooks" ]; then
-            log_success "ansible/playbooks/ exists"
-        else
-            log_error "ansible/playbooks/ missing"
-        fi
+    if [ -f "ansible.cfg" ]; then
+        log_success "ansible.cfg exists"
     else
-        log_error "ansible/ directory missing"
+        log_error "ansible.cfg missing"
+    fi
+    
+    if [ -d "roles" ]; then
+        log_success "roles/ exists"
+        
+        # Count roles
+        ROLE_COUNT=$(ls -d roles/*/ 2>/dev/null | wc -l)
+        log_info "Found $ROLE_COUNT Ansible roles"
+    else
+        log_error "roles/ missing"
+    fi
+    
+    if [ -d "playbooks" ]; then
+        log_success "playbooks/ exists"
+    else
+        log_error "playbooks/ missing"
+    fi
+    
+    if [ -d "inventories" ]; then
+        log_success "inventories/ exists"
+    else
+        log_error "inventories/ missing"
     fi
 }
 

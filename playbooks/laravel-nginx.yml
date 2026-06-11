@@ -1,23 +1,23 @@
 ---
-# Deploy Laravel dengan Apache2
+# Deploy Laravel dengan Nginx
 # Part of OpenOps Toolkit
 #
 # Usage:
-#   ansible-playbook -i ansible/inventories/production ansible/playbooks/laravel-apache.yml
+#   ansible-playbook -i inventories/production playbooks/laravel-nginx.yml
 #
 # Prasyarat:
 #   - Ubuntu 22.04 LTS
 #   - SSH access dengan sudo
-#   - Edit inventory di ansible/inventories/production/inventory.yml
+#   - Edit inventory di inventories/production/inventory.yml
 
-- name: Deploy Laravel dengan Apache2
+- name: Deploy Laravel dengan Nginx
   hosts: webservers
   become: yes
   gather_facts: yes
   serial: "50%"
 
   vars:
-    laravel_webserver_type: "apache2"
+    laravel_webserver_type: "nginx"
 
   vars_files:
     - ../inventories/group_vars/webservers.yml
@@ -27,7 +27,7 @@
       debug:
         msg: |
           ========================================
-          Deploy Laravel + Apache2
+          Deploy Laravel + Nginx
           ========================================
           App: {{ laravel_app_name }}
           Domain: {{ laravel_domain }}
@@ -48,21 +48,21 @@
         ssl_email: "{{ laravel_ssl_email }}"
 
   tasks:
-    - name: Konfigurasi Apache2
-      include_tasks: "webserver/apache2.yml"
+    - name: Konfigurasi Nginx
+      include_tasks: "webserver/nginx.yml"
 
     - name: Deploy selesai
       debug:
         msg: |
           ========================================
-          ✅ Deploy Laravel + Apache2 Selesai!
+          ✅ Deploy Laravel + Nginx Selesai!
           ========================================
 
           URL: http{% if laravel_ssl_enabled %}s{% endif %}://{{ laravel_domain }}
-          Webserver: Apache2
+          Webserver: Nginx
 
           Cek status:
-            systemctl status apache2
+            systemctl status nginx
             systemctl status php{{ php_version | default('8.2') }}-fpm
 
           ========================================

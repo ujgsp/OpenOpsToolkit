@@ -1,0 +1,76 @@
+---
+# Certbot Role - Main Tasks
+
+# 1. Install Certbot
+- name: Install Certbot and Nginx plugin
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+
+# 2. Check if certificate already exists
+- name: Check existing SSL certificate
+  stat:
+    path: "/etc/letsencrypt/live/{{ server_domain }}/fullchain.pem"
+  register: ssl_cert
+
+# 3. Obtain SSL certificate
+- name: Obtain SSL certificate
+  command: >
+    certbot certonly --nginx
+    -d {{ server_domain }}
+    --non-interactive
+    --agree-tos
+    --email {{ ssl_email }}
+    {% if ssl_staging | bool %}--staging{% endif %}
+  when:
+    - not ssl_cert.stat.exists
+    - ssl_email != ''
+  notify: reload nginx
+
+# 4. Configure Nginx for SSL
+- name: Configure Nginx SSL
+  template:
+    src: nginx-ssl.conf.j2
+    dest: "/etc/nginx/sites-available/{{ server_domain }}-ssl"
+    owner: root
+    group: root
+    mode: '0644'
+  when: ssl_cert.stat.exists or (ssl_email != '')
+  notify: reload nginx
+
+# 5. Enable SSL site
+- name: Enable Nginx SSL site
+  file:
+    src: "/etc/nginx/sites-available/{{ server_domain }}-ssl"
+    dest: "/etc/nginx/sites-enabled/{{ server_domain }}-ssl"
+    state: link
+  when: ssl_cert.stat.exists or (ssl_email != '')
+  notify: reload nginx
+
+# 6. Setup auto-renewal cron
+- name: Setup Certbot auto-renewal cron
+  cron:
+    name: "Certbot auto-renewal"
+    minute: "0"
+    hour: "0,12"
+    job: "certbot renew --quiet --deploy-hook 'systemctl reload nginx'"
+    user: root
+  when: ssl_auto_renew | bool
+
+# 7. Verify SSL configuration
+- name: Test Nginx configuration
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+  ignore_errors: yes
+
+- name: Display SSL status
+  debug:
+    msg: |
+      SSL Certificate Status:
+      - Domain: {{ server_domain }}
+      - Certificate exists: {{ ssl_cert.stat.exists }}
+      - Auto-renewal: {{ ssl_auto_renew }}

@@ -50,7 +50,7 @@ Panduan ini akan memandu Anda untuk deploy n8n, tool otomasi workflow visual. n8
 
 ```bash
 # Menggunakan Ansible role
-ansible-playbook -i ansible/inventories/production ansible/roles/docker/tasks/main.yml
+ansible-playbook -i inventories/production roles/docker/tasks/main.yml
 
 # Atau secara manual
 sudo apt update
@@ -61,7 +61,7 @@ sudo systemctl start docker
 
 ### Langkah 2: Konfigurasi Inventory
 
-Edit `ansible/inventories/production/inventory.yml`:
+Edit `inventories/production/inventory.yml`:
 
 ```yaml
 n8n_servers:
@@ -74,7 +74,7 @@ n8n_servers:
 
 ### Langkah 3: Konfigurasi Variabel
 
-Edit `ansible/inventories/production/group_vars/n8n_servers.yml`:
+Edit `inventories/production/group_vars/n8n_servers.yml`:
 
 ```yaml
 n8n_domain: n8n.domainanda.com
@@ -87,7 +87,7 @@ n8n_ssl_email: email@anda.com
 ### Langkah 4: Deploy
 
 ```bash
-ansible-playbook -i ansible/inventories/production ansible/roles/n8n/tasks/main.yml
+ansible-playbook -i inventories/production roles/n8n/tasks/main.yml
 ```
 
 ### Langkah 5: Verifikasi Deployment

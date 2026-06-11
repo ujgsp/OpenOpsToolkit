@@ -1,0 +1,13 @@
+---
+# Certbot Role - Defaults
+
+# SSL Configuration
+ssl_enabled: true
+ssl_email: ""
+ssl_staging: false
+ssl_auto_renew: true
+
+# Certbot Settings
+certbot_install_method: pip
+certbot_pip_package: certbot
+certbot_nginx_plugin: python3-certbot-nginx
