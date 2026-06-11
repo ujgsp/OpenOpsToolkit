@@ -26,7 +26,7 @@
 
 ✅ **Terima Alert Telegram** saat SSL expired, domain expired, atau website down
 
-✅ **Setup Monitoring** dengan Uptime Kuma, Grafana, dan Prometheus
+✅ **Setup Monitoring** dengan Gatus, Grafana, dan Prometheus
 
 ✅ **Analisis Insiden** dengan analisis log berbasis AI
 
@@ -111,7 +111,7 @@ ansible-playbook -i inventories/production playbooks/monitoring.yml --ask-vault-
 ```
 
 **Hasil**: 
-- Uptime Kuma di `http://ip-server-anda:3001`
+- Gatus di `http://ip-server-anda:8080`
 - Grafana di `http://ip-server-anda:3000`
 - Prometheus di `http://ip-server-anda:9090`
 
@@ -145,7 +145,7 @@ Jika Anda ingin menerima alert Telegram:
 
 ### Dashboard Monitoring
 
-![Uptime Kuma](assets/screenshots/uptime-kuma.png)
+![Gatus](assets/screenshots/gatus.png)
 
 *Monitor semua website Anda di satu tempat*
 
@@ -188,7 +188,7 @@ Jika Anda ingin menerima alert Telegram:
 | `openvpn` | Setup server OpenVPN | Ubuntu 22.04+ |
 | `vaultwarden` | Deploy Vaultwarden | Ubuntu 22.04+, Docker |
 | `nginx` | Konfigurasi Nginx + virtual host | Ubuntu 22.04+ |
-| `monitoring` | Deploy Uptime Kuma + Prometheus + Grafana | Ubuntu 22.04+, Docker |
+| `monitoring` | Deploy Gatus + Prometheus + Grafana | Ubuntu 22.04+, Docker |
 | `ufw` | Firewall UFW (deny-default, allow SSH/HTTP/HTTPS) | Ubuntu 22.04+ |
 
 ### Workflow n8n
@@ -203,7 +203,7 @@ Jika Anda ingin menerima alert Telegram:
 
 | Tool | Tujuan | Port |
 |------|--------|------|
-| Uptime Kuma | Monitoring website | 3001 |
+| Gatus | Monitoring website | 8080 |
 | Grafana | Visualisasi | 3000 |
 | Prometheus | Pengumpulan metrik | 9090 |
 | Alertmanager | Alert routing | 9093 |
@@ -247,7 +247,7 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/site.yml --as
 # 1. Deploy monitoring stack
 ansible-playbook -i inventories/production/inventory.yml playbooks/monitoring.yml --ask-vault-pass
 
-# 2. Buka Uptime Kuma, tambahkan semua domain
+# 2. Buka Gatus, tambahkan semua domain
 # 3. Import workflow alert SSL ke n8n (opsional)
 # 4. Konfigurasi notifikasi Telegram
 ```
@@ -309,7 +309,7 @@ ansible-playbook -i inventories/production/inventory.yml playbooks/site.yml --li
 - [x] Deploy Vaultwarden
 
 ### ✅ v0.2.0 — Monitoring (Selesai)
-- [x] Dokumentasi Uptime Kuma
+- [x] Dokumentasi Gatus
 - [x] Setup Grafana
 - [x] Konfigurasi Prometheus
 

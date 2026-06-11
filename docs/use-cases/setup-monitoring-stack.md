@@ -1,12 +1,12 @@
 # Setup Monitoring Stack
 
-Panduan lengkap untuk deploy Uptime Kuma, Grafana, dan Prometheus untuk monitoring.
+Panduan lengkap untuk deploy Gatus, Grafana, dan Prometheus untuk monitoring.
 
 ## Ringkasan
 
 Panduan ini akan memandu Anda untuk deploy stack monitoring lengkap menggunakan Docker Compose. Stack ini mencakup:
 
-- **Uptime Kuma**: Monitoring website dan layanan
+- **Gatus**: Monitoring website dan layanan
 - **Grafana**: Visualisasi dan dashboard
 - **Prometheus**: Pengumpulan dan penyimpanan metrik
 - **Node Exporter**: Metrik sistem
@@ -18,8 +18,8 @@ Panduan ini akan memandu Anda untuk deploy stack monitoring lengkap menggunakan 
 │                      Stack Monitoring                        │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │ Uptime Kuma │  │   Grafana   │  │  Prometheus │        │
-│  │   :3001     │  │   :3000     │  │   :9090     │        │
+│  │    Gatus    │  │   Grafana   │  │  Prometheus │        │
+│  │   :8080     │  │   :3000     │  │   :9090     │        │
 │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘        │
 │         │                │                 │                │
 │         └────────────────┼─────────────────┘                │
@@ -78,8 +78,8 @@ docker-compose up -d
 # Cek semua container berjalan
 docker-compose ps
 
-# Cek Uptime Kuma
-curl http://localhost:3001
+# Cek Gatus
+curl http://localhost:8080
 
 # Cek Grafana
 curl http://localhost:3000/api/health
@@ -95,35 +95,64 @@ curl http://localhost:9100/metrics
 
 | Layanan | URL | Kredensial Default |
 |---------|-----|-------------------|
-| Uptime Kuma | http://IP_ANDA:3001 | Buat saat kunjungan pertama |
+| Gatus | http://IP_ANDA:8080 | Buat saat kunjungan pertama |
 | Grafana | http://IP_ANDA:3000 | admin / admin |
 | Prometheus | http://IP_ANDA:9090 | Tanpa autentikasi |
 
 ## Konfigurasi
 
-### Uptime Kuma
+### Gatus
 
 #### Tambah Monitor Website
 
-1. Buka http://IP_ANDA:3001
-2. Buat akun admin
-3. Klik "Add New Monitor"
-4. Konfigurasi:
-   - **Tipe Monitor**: HTTP(s)
-   - **Nama**: Website Saya
-   - **URL**: https://websiteanda.com
-   - **Interval**: 60 detik
-5. Klik "Save"
+Gatus menggunakan file konfigurasi YAML. Untuk menambah monitor:
 
-#### Tambah Notifikasi Telegram
+1. Buka file konfigurasi Gatus:
+   ```bash
+   sudo nano /opt/monitoring/gatus/config/config.yaml
+   ```
 
-1. Buka Settings → Notifications
-2. Klik "Setup Notification"
-3. Pilih "Telegram"
-4. Konfigurasi:
-   - **Bot Token**: Dari @BotFather
-   - **Chat ID**: Dari @userinfobot
-5. Klik "Save"
+2. Tambah endpoint baru di bagian `endpoints`:
+   ```yaml
+   endpoints:
+     - name: Website Saya
+       url: "https://websiteanda.com"
+       interval: 60s
+       conditions:
+         - "[STATUS] == 200"
+         - "[RESPONSE_TIME] < 500"
+       alerts:
+         - type: telegram
+           failure-threshold: 3
+           send-on-resolved: true
+           description: "Website health check failed"
+   ```
+
+3. Simpan file dan restart container Gatus:
+   ```bash
+   docker-compose restart gatus
+   ```
+
+#### Konfigurasi Telegram Alerting
+
+Telegram alerting sudah dikonfigurasi di file `config.yaml`:
+
+```yaml
+alerting:
+  telegram:
+    token: "YOUR_BOT_TOKEN"
+    id: "YOUR_CHAT_ID"
+```
+
+Untuk mendapatkan token dan chat ID:
+1. Buat bot Telegram melalui @BotFather
+2. Dapatkan chat ID melalui @userinfobot atau API Telegram
+3. Update variabel di inventory:
+   ```yaml
+   vault_gatus_telegram_token: "your-bot-token"
+   vault_gatus_telegram_chat_id: "your-chat-id"
+   ```
+4. Deploy ulang dengan Ansible atau update manual di server
 
 ### Grafana
 
@@ -207,10 +236,10 @@ Setelah deployment, verifikasi:
 docker-compose logs -f
 
 # Cek layanan spesifik
-docker-compose logs -f uptime-kuma
+docker-compose logs -f gatus
 
 # Restart layanan
-docker-compose restart uptime-kuma
+docker-compose restart gatus
 ```
 
 ### Masalah: Port Sudah Digunakan
@@ -221,14 +250,14 @@ docker-compose restart uptime-kuma
 
 ```bash
 # Cek apa yang menggunakan port
-sudo netstat -tlnp | grep :3001
+sudo netstat -tlnp | grep :8080
 
 # Hentikan layanan yang konflik
 sudo systemctl stop layanan-konflik
 
 # Atau ubah port di docker-compose.yml
 ports:
-  - "3002:3001"  # Ubah port host
+  - "8081:8080"  # Ubah port host
 ```
 
 ### Masalah: Permission Ditolak
@@ -239,7 +268,7 @@ ports:
 
 ```bash
 # Perbaiki permission
-sudo chown -R 1000:1000 monitoring/uptime-kuma/data
+sudo chown -R 1000:1000 monitoring/gatus/data
 sudo chown -R 472:472 monitoring/grafana/data
 sudo chown -R 65534:65534 monitoring/prometheus/data
 ```
@@ -274,7 +303,7 @@ docker exec grafana wget -qO- http://prometheus:9090/-/healthy
 
 ```bash
 # Backup data Uptime Kuma
-tar -czf uptime-kuma-backup.tar.gz monitoring/uptime-kuma/data
+tar -czf gatus-backup.tar.gz monitoring/gatus/data
 
 # Backup data Grafana
 tar -czf grafana-backup.tar.gz monitoring/grafana/data
@@ -301,7 +330,7 @@ docker-compose images
 
 ## Sumber Daya
 
-- [Dokumentasi Uptime Kuma](https://uptime.kuma.pet/docs/)
+- [Dokumentasi Gatus](https://github.com/TwiN/gatus)
 - [Dokumentasi Grafana](https://grafana.com/docs/)
 - [Dokumentasi Prometheus](https://prometheus.io/docs/)
 - [Dokumentasi Node Exporter](https://prometheus.io/docs/guides/node-exporter/)

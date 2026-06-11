@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ansible.cfg`, `playbooks/`, `roles/`, `inventories/` now at root
   - Updated all documentation references to reflect new paths
   - Maintained backward compatibility: all Ansible commands work from root
+- **Replace Uptime Kuma with Gatus**: Monitoring stack now uses Gatus for uptime monitoring
+  - More lightweight and developer-friendly
+  - YAML-based configuration
+  - Integrated Telegram alerting
+  - Port changed from 3001 to 8080
+  - Added `vault_gatus_telegram_token` and `vault_gatus_telegram_chat_id` variables
 
 ## [0.1.0] - 2026-06-01
 
@@ -55,6 +61,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Release Notes
 
+### v0.4.0 (Multi-Server & Production Ready)
+
+**Release Date**: June 2026
+
+**Highlights**:
+- Flattened repository structure for simpler command execution
+- Replaced Uptime Kuma with Gatus for monitoring
+- Telegram alerting integration
+- 12 Ansible roles for complete infrastructure automation
+- Comprehensive testing and documentation
+
+**What's Included**:
+- **12 Ansible roles**: laravel, wordpress, n8n, monitoring, docker, openvpn, vaultwarden, nginx, ufw, certbot, server-backup, server-hardening
+- **Monitoring stack**: Gatus + Prometheus + Grafana + Alertmanager
+- **Telegram alerting**: Integrated with Gatus for uptime notifications
+- **Flattened structure**: All commands work from root directory
+- **Production-ready**: CI/CD, code quality checks, release automation
+
+**Breaking Changes**:
+- Repository structure flattened (ansible/ directory removed)
+- Monitoring port changed from 3001 to 8080 (Gatus)
+- New variables: `vault_gatus_telegram_token`, `vault_gatus_telegram_chat_id`
+
+**Upgrade Path**:
+1. Update inventory to use new paths (no more ansible/ prefix)
+2. Update monitoring variables (port 8080 instead of 3001)
+3. Configure Telegram alerting variables
+
+**Known Issues**:
+- Service testing requires server with systemd (Docker container limitations)
+- Production inventory needs to be filled with actual server IPs
+
+**Contributors**:
+- OpenOps Toolkit Team
+
+---
+
 ### v0.1.0 (MVP)
 
 **Release Date**: June 2026
@@ -87,38 +130,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Future Releases
 
-### v0.2.0 (Monitoring Stack)
+### v0.2.0 (Monitoring Stack) ✅ DONE
+**Release Date**: June 2026
+
+**Implemented Features**:
+- Gatus uptime monitoring (replaced Uptime Kuma)
+- Grafana dashboard templates
+- Prometheus + Node Exporter setup
+- Alerting rules configuration
+- Telegram notification integration
+
+### v0.3.0 (AI Ops) ✅ DONE
+**Release Date**: June 2026
+
+**Implemented Features**:
+- AI incident summary (nginx/apache/laravel logs)
+- AI GitHub issue summarization
+- Log analysis automation
+
+### v0.4.0 (Multi-Server & Production Ready) ✅ CURRENT
+**Release Date**: June 2026
+
+**Implemented Features**:
+- Multi-server management
+- Centralized inventory template
+- Deployment orchestration playbooks
+- Complete documentation
+- CI/CD pipeline (GitHub Actions)
+- Code quality checks
+- Release automation
+- Flattened repository structure
+
+### v1.0.0 (Stable Release)
 **Target**: Q3 2026
 
 **Planned Features**:
-- Uptime Kuma setup automation
-- Grafana dashboard templates
-- Prometheus + Node Exporter setup
+- Integration testing suite
+- Terraform cloud provisioning
+- GitOps integration (ArgoCD/Flux)
+- Video tutorials
+- Community contributions
 
-### v0.3.0 (AI Ops)
+### v1.1.0 (Enhanced Features)
 **Target**: Q4 2026
 
 **Planned Features**:
-- AI incident summary
-- GitHub issue summarization
-- Log analysis automation
+- Additional Ansible roles (Redis, PostgreSQL, MongoDB)
+- More n8n workflows (developer, productivity, telegram)
+- Grafana dashboard templates
+- Advanced monitoring alerts
 
-### v0.4.0 (Multi-Server)
+### v2.0.0 (Enterprise Features)
 **Target**: Q1 2027
 
 **Planned Features**:
-- Multi-server management
-- Centralized inventory
-- Deployment orchestration
-
-### v1.0.0 (Production Ready)
-**Target**: Q2 2027
-
-**Planned Features**:
-- Complete documentation
-- CI/CD integration
-- Automated testing
-- Community contributions
+- RBAC (Role-Based Access Control)
+- Audit logging
+- Compliance tools
+- Multi-cloud support (AWS, GCP, Azure)
 
 ---
 

@@ -1,0 +1,56 @@
+# Gatus Configuration
+# Part of OpenOps Toolkit
+
+# Telegram Alerting
+alerting:
+  telegram:
+    token: "{{ monitoring_gatus_telegram_token }}"
+    id: "{{ monitoring_gatus_telegram_chat_id }}"
+
+# Endpoints to monitor
+endpoints:
+  # Example: Monitor this server's HTTP status
+  - name: Localhost HTTP
+    url: "http://localhost"
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: telegram
+        failure-threshold: 3
+        send-on-resolved: true
+        description: "HTTP health check failed"
+
+  # Example: Monitor HTTPS endpoint (uncomment and modify)
+  # - name: My Website
+  #   url: "https://example.com"
+  #   interval: 60s
+  #   conditions:
+  #     - "[STATUS] == 200"
+  #     - "[RESPONSE_TIME] < 500"
+  #   alerts:
+  #     - type: telegram
+  #       failure-threshold: 5
+  #       send-on-resolved: true
+  #       description: "Website health check failed"
+
+  # Example: Monitor TCP port (uncomment and modify)
+  # - name: SSH Port
+  #   url: "tcp://localhost:22"
+  #   interval: 120s
+  #   conditions:
+  #     - "[CONNECTED] == true"
+  #   alerts:
+  #     - type: telegram
+  #       failure-threshold: 3
+  #       send-on-resolved: true
+  #       description: "SSH port check failed"
+
+# Storage (SQLite by default)
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+# Web UI
+web:
+  port: 8080

@@ -7,10 +7,15 @@ monitoring_base_dir: /opt/monitoring
 monitoring_data_dir: "{{ monitoring_base_dir }}/data"
 
 # Ports
-monitoring_uptime_kuma_port: '3001'
+monitoring_gatus_port: '8080'
 monitoring_prometheus_port: '9090'
 monitoring_grafana_port: '3000'
 monitoring_alertmanager_port: '9093'
+
+# Gatus Telegram alerting
+monitoring_gatus_telegram_token: "{{ vault_gatus_telegram_token | default('') }}"
+monitoring_gatus_telegram_chat_id: "{{ vault_gatus_telegram_chat_id | default('') }}"
+monitoring_gatus_config_dir: "{{ monitoring_base_dir }}/gatus/config"
 
 # Grafana
 monitoring_grafana_admin_password: "{{ vault_grafana_admin_password | default('admin') }}"

@@ -1,6 +1,6 @@
 ---
 # Monitoring Deployment Playbook
-# Deploy Uptime Kuma + Prometheus + Grafana monitoring stack
+# Deploy Gatus + Prometheus + Grafana monitoring stack
 # Part of OpenOps Toolkit
 
 - name: Deploy Monitoring Stack
@@ -15,7 +15,7 @@
 
   vars:
     monitoring_allowed_ports:
-      - "{{ monitoring_uptime_kuma_port }}"
+      - "{{ monitoring_gatus_port }}"
       - "{{ monitoring_prometheus_port }}"
       - "{{ monitoring_grafana_port }}"
       - "{{ monitoring_alertmanager_port }}"

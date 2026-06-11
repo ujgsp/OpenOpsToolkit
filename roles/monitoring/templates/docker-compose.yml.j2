@@ -1,14 +1,15 @@
 version: '3.8'
 
 services:
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    container_name: uptime-kuma
+  gatus:
+    image: ghcr.io/twin/gatus:latest
+    container_name: gatus
     restart: always
     ports:
-      - "{{ monitoring_uptime_kuma_port }}:3001"
+      - "{{ monitoring_gatus_port }}:8080"
     volumes:
-      - ./uptime-kuma/data:/app/data
+      - ./gatus/config:/config
+      - ./gatus/data:/data
     networks:
       - monitoring
 

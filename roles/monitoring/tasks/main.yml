@@ -1,6 +1,6 @@
 ---
 # Monitoring Role - Tasks
-# Deploy Uptime Kuma + Prometheus + Grafana via Docker Compose
+# Deploy Gatus + Prometheus + Grafana via Docker Compose
 # Part of OpenOps Toolkit
 
 - name: Create monitoring directories
@@ -17,7 +17,8 @@
     - "{{ monitoring_base_dir }}/grafana/provisioning"
     - "{{ monitoring_base_dir }}/grafana/provisioning/datasources"
     - "{{ monitoring_base_dir }}/alertmanager"
-    - "{{ monitoring_base_dir }}/uptime-kuma"
+    - "{{ monitoring_base_dir }}/gatus"
+    - "{{ monitoring_gatus_config_dir }}"
 
 - name: Copy Prometheus config
   template:
@@ -49,6 +50,15 @@
   template:
     src: docker-compose.yml.j2
     dest: "{{ monitoring_base_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart monitoring stack
+
+- name: Copy Gatus config
+  template:
+    src: gatus-config.yml.j2
+    dest: "{{ monitoring_gatus_config_dir }}/config.yaml"
     owner: root
     group: root
     mode: '0644'

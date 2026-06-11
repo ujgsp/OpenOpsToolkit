@@ -68,6 +68,9 @@ monitoring:
       ansible_ssh_private_key_file: ~/.ssh/id_rsa
   
   vars:
-    uptime_kuma_port: 3001
+    gatus_port: 8080
     grafana_port: 3000
     prometheus_port: 9090
+    # Gatus Telegram alerting (use Ansible Vault for secrets)
+    vault_gatus_telegram_token: "your-telegram-bot-token"
+    vault_gatus_telegram_chat_id: "your-chat-id"

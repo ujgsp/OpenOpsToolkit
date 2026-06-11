@@ -1,10 +1,10 @@
 # Setup Monitoring Stack
 
-Deploy Uptime Kuma, Grafana, and Prometheus for monitoring your servers and websites.
+Deploy Gatus, Grafana, and Prometheus for monitoring your servers and websites.
 
 ## What You Get
 
-- ✅ **Uptime Kuma**: Monitor website availability
+- ✅ **Gatus**: Monitor website availability
 - ✅ **Grafana**: Visualize metrics and dashboards
 - ✅ **Prometheus**: Collect and store metrics
 - ✅ **Node Exporter**: System metrics (CPU, RAM, Disk)
@@ -34,8 +34,8 @@ docker-compose up -d
 # Check all containers are running
 docker-compose ps
 
-# Check Uptime Kuma
-curl http://localhost:3001
+# Check Gatus
+curl http://localhost:8080
 
 # Check Grafana
 curl http://localhost:3000/api/health
@@ -48,30 +48,62 @@ curl http://localhost:9090/-/healthy
 
 | Service | URL | Default Credentials |
 |---------|-----|---------------------|
-| Uptime Kuma | http://YOUR_IP:3001 | Create on first visit |
+| Gatus | http://YOUR_IP:8080 | Create on first visit |
 | Grafana | http://YOUR_IP:3000 | admin / admin |
 | Prometheus | http://YOUR_IP:9090 | No auth |
 
 ## Configuration
 
-### Add Website to Monitor (Uptime Kuma)
+### Add Website to Monitor (Gatus)
 
-1. Open http://YOUR_IP:3001
-2. Create admin account
-3. Click "Add New Monitor"
-4. Select "HTTP(s)"
-5. Enter URL: https://yourwebsite.com
-6. Set interval: 60 seconds
-7. Click "Save"
+Gatus uses a YAML configuration file. To add a monitor:
 
-### Add Telegram Notification (Uptime Kuma)
+1. Edit the Gatus config file:
+   ```bash
+   sudo nano /opt/monitoring/gatus/config/config.yaml
+   ```
 
-1. Go to Settings → Notifications
-2. Click "Setup Notification"
-3. Select "Telegram"
-4. Enter Bot Token (from @BotFather)
-5. Enter Chat ID (from @userinfobot)
-6. Click "Save"
+2. Add a new endpoint under `endpoints`:
+   ```yaml
+   endpoints:
+     - name: My Website
+       url: "https://yourwebsite.com"
+       interval: 60s
+       conditions:
+         - "[STATUS] == 200"
+         - "[RESPONSE_TIME] < 500"
+       alerts:
+         - type: telegram
+           failure-threshold: 3
+           send-on-resolved: true
+           description: "Website health check failed"
+   ```
+
+3. Restart Gatus container:
+   ```bash
+   docker-compose restart gatus
+   ```
+
+### Telegram Alerting Configuration
+
+Telegram alerting is already configured in `config.yaml`:
+
+```yaml
+alerting:
+  telegram:
+    token: "YOUR_BOT_TOKEN"
+    id: "YOUR_CHAT_ID"
+```
+
+To get the token and chat ID:
+1. Create a Telegram bot via @BotFather
+2. Get chat ID via @userinfobot or Telegram API
+3. Update variables in inventory:
+   ```yaml
+   vault_gatus_telegram_token: "your-bot-token"
+   vault_gatus_telegram_chat_id: "your-chat-id"
+   ```
+4. Redeploy with Ansible or update manually on server
 
 ### Import Grafana Dashboard
 
@@ -88,7 +120,7 @@ curl http://localhost:9090/-/healthy
 
 ```yaml
 services:
-  uptime-kuma:    # Website monitoring
+  gatus:    # Website monitoring
   prometheus:     # Metrics collection
   grafana:        # Visualization
   node-exporter:  # System metrics
@@ -98,7 +130,7 @@ services:
 
 | Port | Service |
 |------|---------|
-| 3001 | Uptime Kuma |
+| 8080 | Gatus |
 | 3000 | Grafana |
 | 9090 | Prometheus |
 | 9100 | Node Exporter |
@@ -112,14 +144,14 @@ services:
 docker-compose logs -f
 
 # Restart specific service
-docker-compose restart uptime-kuma
+docker-compose restart gatus
 ```
 
 ### Port Already in Use
 
 ```bash
 # Check what's using the port
-sudo netstat -tlnp | grep :3001
+sudo netstat -tlnp | grep :8080
 
 # Stop conflicting service
 sudo systemctl stop conflicting-service
@@ -129,7 +161,7 @@ sudo systemctl stop conflicting-service
 
 ```bash
 # Fix data directory permissions
-sudo chown -R 1000:1000 monitoring/uptime-kuma/data
+sudo chown -R 1000:1000 monitoring/gatus/data
 sudo chown -R 472:472 monitoring/grafana/data
 ```
 

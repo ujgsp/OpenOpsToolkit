@@ -34,6 +34,34 @@ all:
           ansible_host_key_checking: false
           ansible_ssh_extra_args: "-o StrictHostKeyChecking=no"
 
+    appservers:
+      hosts:
+        test-vps:
+          ansible_host: 127.0.0.1
+          ansible_port: 2222
+          ansible_user: root
+          ansible_ssh_pass: rootpass
+          ansible_host_key_checking: false
+          ansible_ssh_extra_args: "-o StrictHostKeyChecking=no"
+
+    cache:
+      hosts:
+        test-vps:
+          ansible_host: 127.0.0.1
+          ansible_port: 2222
+          ansible_user: root
+          ansible_ssh_pass: rootpass
+          ansible_host_key_checking: false
+          ansible_ssh_extra_args: "-o StrictHostKeyChecking=no"
+
+    all_servers:
+      children:
+        webservers:
+        dbservers:
+        monitoring:
+        appservers:
+        cache:
+
   vars:
     # Laravel settings for testing
     laravel_app_name: "test-laravel"
@@ -48,3 +76,6 @@ all:
     laravel_ssl_email: "test@test.local"
     laravel_webserver_type: "nginx"
     php_version: "8.3"
+    # Monitoring settings
+    app_domain: "test.local"
+    vault_smtp_password: "test-smtp-password"
