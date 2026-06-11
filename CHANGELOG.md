@@ -7,27 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Initial project structure
-- Laravel Ansible role
-- SSL Expired Alert n8n workflow
-- GitHub issue templates
-- GitHub discussion templates
-- GitHub labels configuration
-- Documentation (README, ROADMAP, CONTRIBUTING, SECURITY)
-- Example scripts and configurations
-
-### Changed
-- **Flatten repository structure**: Moved `ansible/` directory contents to repository root for simpler command execution (no more `cd ansible/` needed)
-  - `ansible.cfg`, `playbooks/`, `roles/`, `inventories/` now at root
-  - Updated all documentation references to reflect new paths
-  - Maintained backward compatibility: all Ansible commands work from root
-- **Replace Uptime Kuma with Gatus**: Monitoring stack now uses Gatus for uptime monitoring
-  - More lightweight and developer-friendly
-  - YAML-based configuration
-  - Integrated Telegram alerting
-  - Port changed from 3001 to 8080
-  - Added `vault_gatus_telegram_token` and `vault_gatus_telegram_chat_id` variables
+No changes yet. All changes are documented in the releases below.
 
 ## [v0.4.0] - 2026-06-11
 
