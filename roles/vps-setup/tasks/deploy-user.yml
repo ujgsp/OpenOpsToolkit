@@ -1,0 +1,32 @@
+---
+# Deploy user setup — user + SSH key + sudoers
+
+- name: Create deploy user
+  user:
+    name: "{{ deploy_user }}"
+    state: present
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    createhome: yes
+  when: deploy_user | length > 0
+
+- name: Set up deploy user SSH key
+  authorized_key:
+    user: "{{ deploy_user }}"
+    key: "{{ deploy_user_ssh_key }}"
+    state: present
+  when:
+    - deploy_user | length > 0
+    - deploy_user_ssh_key | length > 0
+
+- name: Configure deploy user sudo
+  lineinfile:
+    path: /etc/sudoers.d/{{ deploy_user }}
+    line: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL"
+    create: yes
+    mode: '0440'
+    validate: 'visudo -cf %s'
+  when:
+    - deploy_user | length > 0
+    - deploy_user_sudo | bool

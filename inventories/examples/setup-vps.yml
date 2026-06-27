@@ -1,0 +1,29 @@
+# Example Inventory — setup-vps.yml
+# Usage:
+#   ansible-playbook -i inventories/examples/setup-vps.yml playbooks/setup-vps.yml -e service_tier=starter
+#   ansible-playbook -i inventories/examples/setup-vps.yml playbooks/setup-vps.yml -t nginx,php,handover
+# =============================================
+
+all:
+  hosts:
+    client-vps:
+      ansible_host: 192.168.1.100         # ganti IP
+      ansible_user: root
+      ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+  vars:
+    # ── Tier ───────────────────────────────────
+    service_tier: "starter"           # starter | server_ready | ops_care
+    webserver: "nginx"                # nginx | apache2 | openlitespeed
+
+    # ── Client ─────────────────────────────────
+    client_name: "client-name"
+    client_email: "admin@client.com"
+    server_domain: "app.client.com"
+
+    # ── SSH ────────────────────────────────────
+    deploy_user_ssh_key: "ssh-rsa AAAAB3NzaC1... user@host"
+
+    # ── Backup ─────────────────────────────────
+    backup_mysql: true
+    backup_mysql_password: "{{ vault_mysql_password }}"

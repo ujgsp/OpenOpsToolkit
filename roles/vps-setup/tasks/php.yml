@@ -1,0 +1,44 @@
+---
+# PHP {{ php_version }} — install + FPM config
+
+- name: Add ondrej/php repository
+  apt_repository:
+    repo: "ppa:ondrej/php"
+    update_cache: yes
+
+- name: Install PHP {{ php_version }}
+  apt:
+    name:
+      - "php{{ php_version }}-fpm"
+      - "php{{ php_version }}-mysql"
+      - "php{{ php_version }}-xml"
+      - "php{{ php_version }}-mbstring"
+      - "php{{ php_version }}-curl"
+      - "php{{ php_version }}-zip"
+      - "php{{ php_version }}-gd"
+      - "php{{ php_version }}-bcmath"
+      - "php{{ php_version }}-intl"
+      - "php{{ php_version }}-readline"
+      - "php{{ php_version }}-opcache"
+      - "php{{ php_version }}-redis"
+      - "php{{ php_version }}-cli"
+    state: present
+
+- name: Configure PHP ini settings
+  lineinfile:
+    path: "/etc/php/{{ php_version }}/fpm/php.ini"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^memory_limit', line: "memory_limit = {{ php_memory_limit }}" }
+    - { regexp: '^upload_max_filesize', line: "upload_max_filesize = {{ php_upload_max_filesize }}" }
+    - { regexp: '^post_max_size', line: "post_max_size = {{ php_upload_max_filesize }}" }
+    - { regexp: '^max_execution_time', line: "max_execution_time = 300" }
+    - { regexp: '^date.timezone', line: "date.timezone = {{ php_timezone }}" }
+  notify: restart php-fpm
+
+- name: Start and enable PHP-FPM
+  systemd:
+    name: "php{{ php_version }}-fpm"
+    state: started
+    enabled: yes

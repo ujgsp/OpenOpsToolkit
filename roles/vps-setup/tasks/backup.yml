@@ -1,0 +1,90 @@
+---
+# Backup — automated backup scripts + cron
+
+- name: Create backup directory
+  file:
+    path: "{{ backup_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+  when: backup_enabled
+
+- name: Install backup tools
+  apt:
+    name:
+      - pigz
+      - pv
+    state: present
+  when: backup_enabled
+
+- name: Deploy backup script
+  copy:
+    dest: /usr/local/bin/backup-files.sh
+    content: |
+      #!/bin/bash
+      BACKUP_DIR="{{ backup_path }}"
+      DATE=$(date +%Y%m%d-%H%M%S)
+      mkdir -p "$BACKUP_DIR/files"
+      for dir in {{ backup_paths | join(' ') }}; do
+          name=$(echo "$dir" | tr '/' '-')
+          tar -I pigz -cf "$BACKUP_DIR/files/$name-$DATE.tar.gz" "$dir" 2>/dev/null
+      done
+      # Rotate old backups
+      find "$BACKUP_DIR/files" -name "*.tar.gz" -mtime +{{ backup_retention_days }} -delete
+    mode: '0750'
+  when: backup_enabled
+
+- name: Create MySQL credentials file
+  copy:
+    dest: /root/.my.cnf
+    content: |
+      [client]
+      user={{ backup_mysql_user }}
+      password={{ backup_mysql_password }}
+    owner: root
+    group: root
+    mode: '0600'
+  when:
+    - backup_enabled
+    - backup_mysql
+    - backup_mysql_password | length > 0
+
+- name: Deploy MySQL backup script
+  copy:
+    dest: /usr/local/bin/backup-mysql.sh
+    content: |
+      #!/bin/bash
+      BACKUP_DIR="{{ backup_path }}"
+      DATE=$(date +%Y%m%d-%H%M%S)
+      mkdir -p "$BACKUP_DIR/mysql"
+      MYSQL_OPTS="--defaults-extra-file=/root/.my.cnf -u{{ backup_mysql_user }} --single-transaction --routines --triggers"
+      databases=$(mysql "$MYSQL_OPTS" -e "SHOW DATABASES;" 2>/dev/null | grep -Ev "(Database|information_schema|performance_schema|sys)")
+      for db in $databases; do
+          mysqldump "$MYSQL_OPTS" "$db" | pigz > "$BACKUP_DIR/mysql/$db-$DATE.sql.gz"
+      done
+      find "$BACKUP_DIR/mysql" -name "*.sql.gz" -mtime +{{ backup_retention_days }} -delete
+    mode: '0750'
+  when:
+    - backup_enabled
+    - backup_mysql
+
+- name: Set backup cron
+  cron:
+    name: "Daily server backup"
+    minute: "{{ backup_minute }}"
+    hour: "{{ backup_hour }}"
+    job: "/usr/local/bin/backup-files.sh"
+    user: root
+  when: backup_enabled
+
+- name: Set MySQL backup cron
+  cron:
+    name: "Daily MySQL backup"
+    minute: "{{ backup_minute }}"
+    hour: "{{ backup_hour }}"
+    job: "/usr/local/bin/backup-mysql.sh"
+    user: root
+  when:
+    - backup_enabled
+    - backup_mysql

@@ -1,0 +1,52 @@
+---
+# VPS Setup Role — Main orchestrator
+# All sub-tasks included here with tags for selective execution.
+# Tier logic via service_tier var: starter | server_ready | ops_care
+# =====================================================
+
+- name: Include system setup
+  include_tasks: system.yml
+  tags: [system]
+
+- name: Include security hardening
+  include_tasks: hardening.yml
+  tags: [hardening, security]
+
+# Web server selection — only ONE runs based on webserver var
+- name: Include Nginx
+  include_tasks: nginx.yml
+  when: webserver == 'nginx'
+  tags: [webserver, nginx]
+
+- name: Include Apache2
+  include_tasks: apache2.yml
+  when: webserver == 'apache2'
+  tags: [webserver, apache2]
+
+- name: Include OpenLiteSpeed
+  include_tasks: ols.yml
+  when: webserver == 'openlitespeed'
+  tags: [webserver, ols, openlitespeed]
+
+- name: Include PHP
+  include_tasks: php.yml
+  tags: [php, php8]
+
+- name: Include SSL / Certbot
+  include_tasks: ssl.yml
+  when: ssl_enabled | bool
+  tags: [ssl, certbot]
+
+# Tier: starter (backup), server_ready (+monitoring), ops_care (+patching)
+- name: Include backup
+  include_tasks: backup.yml
+  tags: [backup]
+
+- name: Include monitoring (server_ready+)
+  include_tasks: monitoring.yml
+  when: service_tier in ['server_ready', 'ops_care']
+  tags: [monitoring]
+
+- name: Include handover doc (always last)
+  include_tasks: handover.yml
+  tags: [handover]

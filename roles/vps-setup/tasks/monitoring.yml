@@ -1,0 +1,38 @@
+---
+# Monitoring — basic uptime check via cron + curl
+
+- name: Create monitoring directory
+  file:
+    path: /opt/monitoring
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy uptime check script
+  copy:
+    dest: /usr/local/bin/uptime-check.sh
+    content: |
+      #!/bin/bash
+      # Basic uptime check — pings endpoints, logs results
+      LOG="/opt/monitoring/uptime.log"
+      date >> "$LOG"
+      {% for ep in monitoring_endpoints %}
+      if curl -sf --max-time 15 "{{ ep.url }}" > /dev/null 2>&1; then
+          echo "  UP   {{ ep.name }} ({{ ep.url }})" >> "$LOG"
+      else
+          echo "  DOWN {{ ep.name }} ({{ ep.url }})" >> "$LOG"
+      fi
+      {% endfor %}
+      echo "---" >> "$LOG"
+      # Keep last 30 days
+      find /opt/monitoring -name "uptime.log" -exec tail -n 5000 {} > /tmp/uptime.tmp \; -exec mv /tmp/uptime.tmp {} \;
+    mode: '0750'
+
+- name: Create monitoring cron
+  cron:
+    name: "Uptime check every {{ monitoring_check_interval }}min"
+    minute: "*/{{ monitoring_check_interval }}"
+    job: "/usr/local/bin/uptime-check.sh"
+    user: root
+  when: monitoring_check_interval | int >= 5

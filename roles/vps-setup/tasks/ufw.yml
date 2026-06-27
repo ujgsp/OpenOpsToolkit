@@ -1,0 +1,31 @@
+---
+# UFW firewall — default deny + allow SSH/HTTP/HTTPS
+
+- name: Configure UFW — defaults
+  ufw:
+    direction: "{{ item.dir }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { dir: incoming, policy: deny }
+    - { dir: outgoing, policy: allow }
+
+- name: Configure UFW — allow SSH
+  ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+
+- name: Configure UFW — allow HTTP/HTTPS
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - '80'
+    - '443'
+  when: ufw_allow_http or ufw_allow_https
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+    logging: low

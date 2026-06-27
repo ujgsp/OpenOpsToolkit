@@ -1,0 +1,74 @@
+---
+# VPS Setup Role — Default Variables
+
+# ── Service Tier ──────────────────────────────
+service_tier: "starter"            # starter | server_ready | ops_care
+webserver: "nginx"                 # nginx | apache2 | openlitespeed
+
+# ── Client Info ───────────────────────────────
+client_name: ""
+client_email: ""
+server_domain: ""
+server_ip: ""
+
+# ── System ────────────────────────────────────
+server_timezone: "Asia/Jakarta"
+server_hostname: ""
+server_swap_size: "1G"
+
+# ── SSH ───────────────────────────────────────
+ssh_port: 22
+ssh_permit_root_login: "prohibit-password"
+ssh_password_authentication: "no"
+ssh_pubkey_authentication: "yes"
+deploy_user: "deploy"
+deploy_user_ssh_key: ""            # public key content
+deploy_user_sudo: true
+
+# ── UFW ───────────────────────────────────────
+ufw_allow_http: true
+ufw_allow_https: true
+
+# ── PHP ───────────────────────────────────────
+php_version: "8.2"
+php_memory_limit: "256M"
+php_upload_max_filesize: "64M"
+php_timezone: "{{ server_timezone }}"
+
+# ── SSL ───────────────────────────────────────
+ssl_enabled: true
+ssl_email: "{{ client_email }}"
+ssl_staging: false
+ssl_auto_renew: true
+
+# ── Backup ────────────────────────────────────
+backup_enabled: true
+backup_path: "/var/backups/server"
+backup_retention_days: 7
+backup_hour: "2"
+backup_minute: "0"
+backup_mysql: false
+backup_mysql_user: "root"
+backup_mysql_password: "{{ vault_mysql_password | default('') }}"
+backup_paths:
+  - /etc/nginx
+  - /etc/ssh
+  - /var/www
+
+# ── Monitoring ────────────────────────────────
+monitoring_type: "basic"           # basic | gatus
+monitoring_check_interval: 60      # seconds
+monitoring_notify_email: ""
+monitoring_endpoints:
+  - name: "website"
+    url: "https://{{ server_domain }}"
+  - name: "ssh"
+    url: "tcp://{{ server_ip }}:{{ ssh_port }}"
+
+# ── Fail2Ban ──────────────────────────────────
+fail2ban_bantime: "3600"
+fail2ban_findtime: "600"
+fail2ban_maxretry: 5
+
+# ── Handover ──────────────────────────────────
+handover_path: "/root/handover-{{ client_name | default('server') }}.md"

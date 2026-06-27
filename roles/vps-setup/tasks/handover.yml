@@ -1,0 +1,31 @@
+---
+# Handover — generate handover document
+
+- name: Create handover document
+  template:
+    src: handover.md.j2
+    dest: "{{ handover_path }}"
+    owner: root
+    group: root
+    mode: '0640'
+
+- name: Display handover summary
+  debug:
+    msg: |
+      ============================================
+      ✅ VPS Setup Complete!
+
+      Tier: {{ service_tier | upper }}
+      Client: {{ client_name | default('(not set)') }}
+      Domain: {{ server_domain | default('(not set)') }}
+      IP: {{ ansible_default_ipv4.address | default('(unknown)') }}
+
+      Services:
+      {% if webserver is defined %}      - Web Server: {{ webserver }}{% endif %}
+      {% if php_version is defined %}      - PHP: {{ php_version }}{% endif %}
+      {% if ssl_enabled %}      - SSL: {{ server_domain }}{% endif %}
+      {% if backup_enabled %}      - Backup: Daily {{ backup_hour }}:{{ backup_minute }}{% endif %}
+      {% if service_tier in ['server_ready','ops_care'] %}      - Monitoring: Active{% endif %}
+
+      Handover: {{ handover_path }}
+      ============================================

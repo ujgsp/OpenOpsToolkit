@@ -1,0 +1,42 @@
+---
+# Nginx — install + basic virtual host
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Remove default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Create basic virtual host
+  template:
+    src: nginx-vhost.conf.j2
+    dest: "/etc/nginx/sites-available/{{ server_domain | default('default') }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  when: server_domain | length > 0
+  notify: reload nginx
+
+- name: Enable site
+  file:
+    src: "/etc/nginx/sites-available/{{ server_domain }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ server_domain }}.conf"
+    state: link
+  when: server_domain | length > 0
+  notify: reload nginx
+
+- name: Start and enable Nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Allow Nginx in UFW
+  ufw:
+    rule: allow
+    name: 'Nginx Full'

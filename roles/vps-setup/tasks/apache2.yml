@@ -1,0 +1,50 @@
+---
+# Apache2 — install + basic virtual host
+
+- name: Install Apache2
+  apt:
+    name:
+      - apache2
+      - libapache2-mod-php{{ php_version }}
+    state: present
+
+- name: Enable required modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - rewrite
+    - ssl
+    - headers
+    - proxy_fcgi
+    - setenvif
+  notify: restart apache2
+
+- name: Disable default site
+  command: a2dissite 000-default.conf
+  args:
+    removes: /etc/apache2/sites-enabled/000-default.conf
+  notify: restart apache2
+
+- name: Create basic virtual host
+  template:
+    src: apache2-vhost.conf.j2
+    dest: "/etc/apache2/sites-available/{{ server_domain | default('default') }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  when: server_domain | length > 0
+  notify: restart apache2
+
+- name: Enable site
+  command: "a2ensite {{ server_domain }}.conf"
+  args:
+    creates: "/etc/apache2/sites-enabled/{{ server_domain }}.conf"
+  when: server_domain | length > 0
+  notify: restart apache2
+
+- name: Start and enable Apache2
+  systemd:
+    name: apache2
+    state: started
+    enabled: yes

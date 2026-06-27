@@ -1,0 +1,66 @@
+---
+# System setup — hostname, timezone, packages, swap
+
+- name: Set hostname
+  hostname:
+    name: "{{ server_hostname }}"
+  when: server_hostname | length > 0
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install base packages
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - unzip
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - ufw
+      - fail2ban
+      - unattended-upgrades
+      - logrotate
+      - chrony
+      - htop
+      - net-tools
+    state: present
+
+- name: Configure automatic security updates
+  copy:
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::AutocleanInterval "7";
+      APT::Periodic::Unattended-Upgrade "1";
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Set timezone
+  timezone:
+    name: "{{ server_timezone }}"
+
+- name: Configure swap
+  command: >
+    fallocate -l {{ server_swap_size }} /swapfile &&
+    chmod 600 /swapfile &&
+    mkswap /swapfile &&
+    swapon /swapfile
+  args:
+    creates: /swapfile
+
+- name: Add swap to fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "/swapfile none swap sw 0 0"
+    regexp: "^/swapfile"
+    create: yes
+  when: server_swap_size | length > 0

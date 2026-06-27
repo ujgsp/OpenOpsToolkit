@@ -1,0 +1,17 @@
+---
+# SSH hardening — sshd_config + validate
+
+- name: Configure sshd
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    block: |
+      Port {{ ssh_port }}
+      PermitRootLogin {{ ssh_permit_root_login }}
+      PasswordAuthentication {{ 'yes' if ssh_password_authentication else 'no' }}
+      PubkeyAuthentication {{ 'yes' if ssh_pubkey_authentication else 'no' }}
+      MaxAuthTries {{ ssh_max_auth_tries | default(3) }}
+      ClientAliveInterval {{ ssh_client_alive_interval | default(300) }}
+      ClientAliveCountMax {{ ssh_client_alive_count_max | default(2) }}
+    marker: "# {mark} ANSIBLE MANAGED — SSH HARDENING"
+    validate: sshd -t -f %s
+  notify: restart sshd

@@ -1,0 +1,42 @@
+---
+# VPS Setup Role — Handlers
+
+- name: restart sshd
+  systemd:
+    name: sshd
+    state: restarted
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+
+- name: reload nginx
+  systemd:
+    name: nginx
+    state: reloaded
+
+- name: restart apache2
+  systemd:
+    name: apache2
+    state: restarted
+
+- name: reload apache2
+  systemd:
+    name: apache2
+    state: reloaded
+
+- name: restart openlitespeed
+  systemd:
+    name: lsws
+    state: restarted
+
+- name: restart php-fpm
+  systemd:
+    name: "php{{ php_version }}-fpm"
+    state: restarted
+
+- name: restart fail2ban
+  systemd:
+    name: fail2ban
+    state: restarted

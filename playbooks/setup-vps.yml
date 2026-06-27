@@ -1,0 +1,21 @@
+---
+# =====================================================
+# setup-vps.yml — Ubuntu VPS Setup Service
+# Mapping 3 tier:
+#   starter     → Rp 500-750K
+#   server_ready → Rp 1.2-1.8jt
+#   ops_care    → Rp 500K-1.2jt/bln add-on
+#
+# Usage:
+#   ansible-playbook -i inventory.yml setup-vps.yml -e service_tier=starter
+#   ansible-playbook -i inventory.yml setup-vps.yml -t nginx          # run specific tag
+#   ansible-playbook -i inventory.yml setup-vps.yml -t handover       # gen handover only
+# =====================================================
+- name: Ubuntu VPS Setup Service
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - role: vps-setup
+      tags: [vps-setup]

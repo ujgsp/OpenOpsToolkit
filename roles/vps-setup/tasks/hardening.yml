@@ -1,0 +1,19 @@
+---
+# Security hardening — SSH, UFW, Fail2Ban, deploy user
+# Split into granular task files for correct tag isolation.
+
+- name: SSH hardening
+  include_tasks: ssh.yml
+  tags: [ssh, hardening]
+
+- name: Deploy user setup
+  include_tasks: deploy-user.yml
+  tags: [deploy-user, deploy, hardening]
+
+- name: UFW firewall
+  include_tasks: ufw.yml
+  tags: [ufw, firewall, hardening]
+
+- name: Fail2Ban setup
+  include_tasks: fail2ban.yml
+  tags: [fail2ban, hardening]

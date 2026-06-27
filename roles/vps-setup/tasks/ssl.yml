@@ -1,0 +1,49 @@
+---
+# SSL — Certbot SSL certificate
+
+- name: Install Certbot
+  apt:
+    name:
+      - certbot
+      {% if webserver == 'nginx' %}- python3-certbot-nginx{% endif %}
+      {% if webserver == 'apache2' %}- python3-certbot-apache{% endif %}
+    state: present
+
+- name: Check existing certificate
+  stat:
+    path: "/etc/letsencrypt/live/{{ server_domain }}/fullchain.pem"
+  register: ssl_cert
+  when: server_domain | length > 0
+
+# OLS has no certbot plugin → use standalone (temp port 80)
+- name: Set certbot authenticator plugin
+  set_fact:
+    certbot_plugin: >-
+      {% if webserver in ['nginx', 'apache2'] %}{{ webserver }}
+      {% else %}standalone{% endif %}
+    ssl_reload_service: >-
+      {% if webserver == 'nginx' %}systemctl reload nginx
+      {% elif webserver == 'apache2' %}systemctl reload apache2
+      {% elif webserver == 'openlitespeed' %}systemctl reload lsws
+      {% else %}echo 'reload manually'{% endif %}
+
+- name: Obtain SSL certificate
+  command: >
+    certbot certonly --{{ certbot_plugin }}
+    -d {{ server_domain }}
+    --non-interactive --agree-tos
+    --email {{ ssl_email }}
+    {% if ssl_staging %}--staging{% endif %}
+  when:
+    - server_domain | length > 0
+    - ssl_email | length > 0
+    - not ssl_cert.stat.exists
+
+- name: Setup auto-renewal cron
+  cron:
+    name: "Certbot auto-renewal"
+    minute: "0"
+    hour: "0,12"
+    job: "certbot renew --quiet --deploy-hook '{{ ssl_reload_service }}'"
+    user: root
+  when: ssl_auto_renew | bool

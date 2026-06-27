@@ -1,0 +1,31 @@
+---
+# OpenLiteSpeed — install + basic vhost
+
+- name: Add OpenLiteSpeed repo key
+  get_url:
+    url: https://rpms.litespeedtech.com/debian/lst_debian_repo.gpg
+    dest: /usr/share/keyrings/lst_debian_repo.gpg
+    mode: '0644'
+
+- name: Add OpenLiteSpeed repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/lst_debian_repo.gpg] http://rpms.litespeedtech.com/debian/ jammy main"
+    state: present
+    filename: openlitespeed
+    update_cache: yes
+
+- name: Install OpenLiteSpeed
+  apt:
+    name: openlitespeed
+    state: present
+
+- name: Install LiteSpeed PHP module
+  apt:
+    name: "lsphp{{ php_version | replace('.', '') }}"
+    state: present
+
+- name: Start and enable OpenLiteSpeed
+  systemd:
+    name: lsws
+    state: started
+    enabled: yes

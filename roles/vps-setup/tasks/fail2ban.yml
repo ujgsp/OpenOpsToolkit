@@ -1,0 +1,17 @@
+---
+# Fail2Ban — protect SSH against brute-force
+
+- name: Configure Fail2Ban
+  template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart fail2ban
+
+- name: Start and enable Fail2Ban
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: yes

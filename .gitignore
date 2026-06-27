@@ -74,5 +74,13 @@ env/
 *.bak
 *.backup
 *.orig
+# Ansible Vault
+*_vault*
+vault_*
+*_vault.yml
+
+# Production inventory (contains real IPs + credentials)
+inventories/production/
+
 # Pi Agent (local-only)
 .pi/
