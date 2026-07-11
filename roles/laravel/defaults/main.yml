@@ -55,7 +55,7 @@ supervisor_programs:
     directory: "/var/www/{{ app_name }}"
     autostart: true
     autorestart: true
-    numprocs: {{ queue_worker_processes }}
+    numprocs: "{{ queue_worker_processes }}"
 
 # Redis (optional)
 redis_host: "127.0.0.1"

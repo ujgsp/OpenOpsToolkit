@@ -12,6 +12,7 @@ No changes yet. All changes are documented in the releases below.
 ## [v0.4.4] - 2026-06-11
 
 ### Fixed
+
 - Simplified release workflow
 - Removed problematic update-docs job
 - Maintain CHANGELOG.md manually with proper format
@@ -19,6 +20,7 @@ No changes yet. All changes are documented in the releases below.
 ## [v0.4.3] - 2026-06-11
 
 ### Fixed
+
 - Release workflow updated for flattened repository structure
 - Updated directory copy commands (playbooks, roles, inventories)
 - Removed references to old directories (ansible, n8n, monitoring, scripts)
@@ -27,6 +29,7 @@ No changes yet. All changes are documented in the releases below.
 ## [v0.4.0] - 2026-06-11
 
 ### Added
+
 - Gatus uptime monitoring (replaced Uptime Kuma)
 - Telegram alerting integration
 - Flattened repository structure
@@ -42,6 +45,7 @@ No changes yet. All changes are documented in the releases below.
 - Example scripts and configurations
 
 ### Changed
+
 - Monitoring port from 3001 to 8080 (Gatus)
 - Repository structure flattened (ansible/ directory removed)
 - Updated all documentation and examples
@@ -57,11 +61,13 @@ No changes yet. All changes are documented in the releases below.
   - Added `vault_gatus_telegram_token` and `vault_gatus_telegram_chat_id` variables
 
 ### Breaking Changes
+
 - Repository structure flattened (ansible/ directory removed)
 - Monitoring port changed from 3001 to 8080 (Gatus)
 - New variables: `vault_gatus_telegram_token`, `vault_gatus_telegram_chat_id`
 
 ### Upgrade Path
+
 1. Update inventory to use new paths (no more ansible/ prefix)
 2. Update monitoring variables (port 8080 instead of 3001)
 3. Configure Telegram alerting variables
