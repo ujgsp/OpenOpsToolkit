@@ -32,6 +32,10 @@ roles/
   audit_apache/        → Config test, status, modules, error log
   audit_openlitespeed/ → Config check, status
   audit_php/           → Version, FPM, modules, limits
+  audit_mysql/         → Config, status, root pw, anon users, binlog
+  audit_postgresql/    → Config, status, auth, SSL
+  audit_docker/        → Version, status, containers, privileged
+  audit_ssl/           → Cert expiry, certbot, TLS version
 playbooks/audit.yml    → Entry point
 plugins/filter/        → Format conversion (JSON → Markdown)
 reports/               → Output directory (auto-created)
@@ -50,6 +54,10 @@ reports/               → Output directory (auto-created)
 | `audit_apache` | Installation, config test, service status, modules, error log | `audit_apache`, `apache`, `webserver` |
 | `audit_openlitespeed` | Installation, service status, config check | `audit_openlitespeed`, `ols`, `webserver` |
 | `audit_php` | Version, FPM, modules, upload_max_filesize, memory_limit | `audit_php`, `php` |
+| `audit_mysql` | Installation, status, root password, anon users, max connections, binlog | `audit_mysql`, `mysql`, `database` |
+| `audit_postgresql` | Installation, status, password auth, max connections, SSL | `audit_postgresql`, `postgresql`, `database` |
+| `audit_docker` | Installation, status, version, containers, privileged, daemon config | `audit_docker`, `docker`, `container` |
+| `audit_ssl` | Certificate expiry, certbot, TLS version | `audit_ssl`, `ssl` |
 
 ## Output
 

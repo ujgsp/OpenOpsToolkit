@@ -1,0 +1,151 @@
+---
+# Audit Docker — Version, Status, Containers, Security
+
+- name: Initialize audit_results for docker module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit Docker — Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Audit Docker — Detect Docker
+  ansible.builtin.set_fact:
+    _docker_installed: >-
+      {{ 'docker-ce' in ansible_facts.packages or 'docker.io' in ansible_facts.packages }}
+
+# --- Installation ---
+
+- name: Audit Docker — Set installation result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'docker_installed',
+           'category': 'container',
+           'name': 'Docker Installed',
+           'severity': 'INFO',
+           'status': 'PASS' if (_docker_installed) else 'WARN',
+           'message': 'Docker installed' if (_docker_installed) else 'Docker not installed',
+           'details': {'installed': _docker_installed},
+           'recommendation': ''
+         }] }}"
+
+# --- Service Status ---
+
+- name: Audit Docker — Gather service facts
+  ansible.builtin.service_facts:
+  when: _docker_installed
+
+- name: Audit Docker — Set service status result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'docker_service_status',
+           'category': 'container',
+           'name': 'Docker Service Status',
+           'severity': 'HIGH',
+           'status': 'PASS' if (ansible_facts.services['docker.service']['state'] | default('stopped') == 'running') else 'FAIL',
+           'message': 'Docker is running' if (ansible_facts.services['docker.service']['state'] | default('stopped') == 'running') else 'Docker is not running',
+           'details': {'state': ansible_facts.services['docker.service']['state'] | default('not_found')},
+           'recommendation': '' if (ansible_facts.services['docker.service']['state'] | default('stopped') == 'running') else 'Start docker service'
+         }] }}"
+  when: _docker_installed
+
+# --- Version ---
+
+- name: Audit Docker — Check version
+  ansible.builtin.shell: docker --version 2>/dev/null | awk '{print $3}' | tr -d ','
+  register: audit_docker_version
+  changed_when: false
+  failed_when: false
+  when: _docker_installed
+
+- name: Audit Docker — Set version result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'docker_version',
+           'category': 'container',
+           'name': 'Docker Version',
+           'severity': 'INFO',
+           'status': 'PASS',
+           'message': 'Docker ' ~ audit_docker_version.stdout ~ ' installed',
+           'details': {'version': audit_docker_version.stdout},
+           'recommendation': ''
+         }] }}"
+  when: _docker_installed and audit_docker_version.stdout | length > 0
+
+# --- Running Containers ---
+
+- name: Audit Docker — Count running containers
+  ansible.builtin.shell: docker ps -q 2>/dev/null | wc -l
+  register: audit_docker_containers
+  changed_when: false
+  failed_when: false
+  when: _docker_installed
+
+- name: Audit Docker — Set containers result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'docker_running_containers',
+           'category': 'container',
+           'name': 'Docker Running Containers',
+           'severity': 'INFO',
+           'status': 'PASS',
+           'message': audit_docker_containers.stdout ~ ' container(s) running',
+           'details': {'count': audit_docker_containers.stdout | int},
+           'recommendation': ''
+         }] }}"
+  when: _docker_installed and audit_docker_containers.stdout | length > 0
+
+# --- Privileged Containers ---
+
+- name: Audit Docker — Check privileged containers
+  ansible.builtin.shell: |
+    docker ps --format '{{.ID}} {{.Names}}' 2>/dev/null | while read id name; do
+      priv=$(docker inspect --format '{{.HostConfig.Privileged}}' "$id" 2>/dev/null)
+      [ "$priv" = "true" ] && echo "$name"
+    done
+  register: audit_docker_priv
+  changed_when: false
+  failed_when: false
+  when: _docker_installed
+
+- name: Audit Docker — Set privileged containers result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'docker_privileged_containers',
+           'category': 'container',
+           'name': 'Docker Privileged Containers',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_docker_priv.stdout | length == 0) else 'WARN',
+           'message': 'No privileged containers' if (audit_docker_priv.stdout | length == 0) else 'Privileged containers: ' ~ audit_docker_priv.stdout,
+           'details': {'privileged': audit_docker_priv.stdout_lines | default([])},
+           'recommendation': '' if (audit_docker_priv.stdout | length == 0) else 'Review and remove privileged containers unless necessary'
+         }] }}"
+  when: _docker_installed
+
+# --- Docker Daemon Config ---
+
+- name: Audit Docker — Check daemon config
+  ansible.builtin.stat:
+    path: /etc/docker/daemon.json
+  register: audit_docker_daemon
+  when: _docker_installed
+
+- name: Audit Docker — Set daemon config result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'docker_daemon_config',
+           'category': 'container',
+           'name': 'Docker Daemon Config',
+           'severity': 'LOW',
+           'status': 'PASS' if (audit_docker_daemon.stat.exists) else 'WARN',
+           'message': 'daemon.json exists' if (audit_docker_daemon.stat.exists) else 'No daemon.json found',
+           'details': {'exists': audit_docker_daemon.stat.exists},
+           'recommendation': '' if (audit_docker_daemon.stat.exists) else 'Consider creating /etc/docker/daemon.json for hardened defaults'
+         }] }}"
+  when: _docker_installed

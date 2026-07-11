@@ -1,0 +1,141 @@
+---
+# Audit PostgreSQL — Config, Status, Security
+
+- name: Initialize audit_results for postgresql module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit PostgreSQL — Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Audit PostgreSQL — Detect PostgreSQL
+  ansible.builtin.set_fact:
+    _pg_installed: >-
+      {{ ansible_facts.packages | dict2items
+         | selectattr('key', 'match', 'postgresql-[0-9]+') | list | length > 0 }}
+    _pg_version: >-
+      {{ ansible_facts.packages | dict2items
+         | selectattr('key', 'match', 'postgresql-[0-9]+')
+         | map(attribute='key') | first | default('') | regex_replace('postgresql-', '') }}
+
+# --- Installation ---
+
+- name: Audit PostgreSQL — Set installation result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'postgresql_installed',
+           'category': 'database',
+           'name': 'PostgreSQL Installed',
+           'severity': 'INFO',
+           'status': 'PASS' if (_pg_installed) else 'WARN',
+           'message': 'PostgreSQL ' ~ _pg_version ~ ' installed' if (_pg_installed) else 'PostgreSQL not installed',
+           'details': {'installed': _pg_installed, 'version': _pg_version},
+           'recommendation': ''
+         }] }}"
+
+# --- Service Status ---
+
+- name: Audit PostgreSQL — Gather service facts
+  ansible.builtin.service_facts:
+  when: _pg_installed
+
+- name: Audit PostgreSQL — Set service status result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'postgresql_service_status',
+           'category': 'database',
+           'name': 'PostgreSQL Service Status',
+           'severity': 'HIGH',
+           'status': 'PASS' if (ansible_facts.services['postgresql.service']['state'] | default('stopped') == 'running') else 'FAIL',
+           'message': 'PostgreSQL is running' if (ansible_facts.services['postgresql.service']['state'] | default('stopped') == 'running') else 'PostgreSQL is not running',
+           'details': {'state': ansible_facts.services['postgresql.service']['state'] | default('not_found')},
+           'recommendation': '' if (ansible_facts.services['postgresql.service']['state'] | default('stopped') == 'running') else 'Start PostgreSQL service'
+         }] }}"
+  when: _pg_installed
+
+# --- Password Auth ---
+
+- name: Audit PostgreSQL — Check password auth
+  ansible.builtin.shell: |
+    pg_hba=$(find /etc/postgresql -name pg_hba.conf 2>/dev/null | head -1)
+    if [ -f "$pg_hba" ]; then
+      if grep -q "^local.*all.*all.*trust" "$pg_hba" 2>/dev/null; then
+        echo "trust"
+      else
+        echo "secured"
+      fi
+    else
+      echo "unknown"
+    fi
+  register: audit_pg_auth
+  changed_when: false
+  failed_when: false
+  when: _pg_installed
+
+- name: Audit PostgreSQL — Set auth result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'postgresql_password_auth',
+           'category': 'database',
+           'name': 'PostgreSQL Password Auth',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_pg_auth.stdout == 'secured') else 'FAIL',
+           'message': 'Password authentication enforced' if (audit_pg_auth.stdout == 'secured') else 'Trust authentication detected',
+           'details': {'auth_method': audit_pg_auth.stdout},
+           'recommendation': '' if (audit_pg_auth.stdout == 'secured') else 'Change trust to md5/scram-sha-256 in pg_hba.conf'
+         }] }}"
+  when: _pg_installed
+
+# --- Max Connections ---
+
+- name: Audit PostgreSQL — Check max_connections
+  ansible.builtin.shell: |
+    sudo -u postgres psql -t -c "SHOW max_connections" 2>/dev/null | tr -d ' ' || echo "100"
+  register: audit_pg_max_conn
+  changed_when: false
+  failed_when: false
+  when: _pg_installed
+
+- name: Audit PostgreSQL — Set max connections result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'postgresql_max_connections',
+           'category': 'database',
+           'name': 'PostgreSQL Max Connections',
+           'severity': 'LOW',
+           'status': 'PASS',
+           'message': 'max_connections: ' ~ audit_pg_max_conn.stdout,
+           'details': {'max_connections': audit_pg_max_conn.stdout | int},
+           'recommendation': ''
+         }] }}"
+  when: _pg_installed and audit_pg_max_conn.stdout | length > 0
+
+# --- SSL ---
+
+- name: Audit PostgreSQL — Check SSL
+  ansible.builtin.shell: |
+    sudo -u postgres psql -t -c "SHOW ssl" 2>/dev/null | tr -d ' ' || echo "off"
+  register: audit_pg_ssl
+  changed_when: false
+  failed_when: false
+  when: _pg_installed
+
+- name: Audit PostgreSQL — Set SSL result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'postgresql_ssl',
+           'category': 'database',
+           'name': 'PostgreSQL SSL',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_pg_ssl.stdout == 'on') else 'WARN',
+           'message': 'SSL is enabled' if (audit_pg_ssl.stdout == 'on') else 'SSL is disabled',
+           'details': {'ssl': audit_pg_ssl.stdout == 'on'},
+           'recommendation': '' if (audit_pg_ssl.stdout == 'on') else 'Enable SSL for encrypted connections'
+         }] }}"
+  when: _pg_installed

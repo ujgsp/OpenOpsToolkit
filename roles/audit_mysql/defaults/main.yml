@@ -1,0 +1,7 @@
+---
+# Audit MySQL — Default Thresholds
+
+audit_mysql_root_has_password: true
+audit_mysql_anon_users_warn: true
+audit_mysql_connections_warn: 150
+audit_mysql_connections_fail: 200
