@@ -1,75 +1,75 @@
-title: "Idea: "
+title: "Ide: "
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        ## Share an Idea
+        ## Bagikan Ide Anda
         
-        Use this template to share an idea for improving OpenOps Toolkit.
+        Gunakan template ini untuk menyampaikan ide perbaikan OpenOps Toolkit.
         
-        Before submitting, please:
-        1. Check the [roadmap](ROADMAP.md)
-        2. Search [existing discussions](https://github.com/openops-toolkit/openops-toolkit/discussions)
-        3. Search [existing issues](https://github.com/openops-toolkit/openops-toolkit/issues)
-  
+        Sebelum mengirim, silakan:
+        1. Cek [roadmap](ROADMAP.md)
+        2. Cari [diskusi yang sudah ada](https://github.com/openops-toolkit/openops-toolkit/discussions)
+        3. Cari [issue yang sudah ada](https://github.com/openops-toolkit/openops-toolkit/issues)
+
   - type: textarea
     id: idea
     attributes:
-      label: Idea
-      description: What is your idea?
-      placeholder: Describe your idea here...
+      label: Ide
+      description: Apa ide Anda?
+      placeholder: Jelaskan idenya di sini...
     validations:
       required: true
-  
+
   - type: textarea
     id: problem
     attributes:
-      label: Problem
-      description: What problem does this idea solve?
+      label: Masalah
+      description: Masalah apa yang diatasi oleh ide ini?
       placeholder: |
-        - What is the current situation?
-        - What is the pain point?
-        - How does this idea help?
+        - Situasi saat ini seperti apa?
+        - Apa kendalanya?
+        - Bagaimana ide ini membantu?
     validations:
       required: true
-  
+
   - type: textarea
     id: solution
     attributes:
-      label: Proposed Solution
-      description: How would you implement this idea?
+      label: Solusi yang Diusulkan
+      description: Bagaimana cara mewujudkannya?
       placeholder: |
-        - What would the solution look like?
-        - How would it work?
-        - What are the key features?
+        - Bentuk solusinya seperti apa?
+        - Cara kerjanya bagaimana?
+        - Fitur utamanya apa saja?
     validations:
       required: false
-  
+
   - type: dropdown
     id: component
     attributes:
-      label: Component
-      description: Which component is this idea for?
+      label: Komponen
+      description: Untuk komponen mana ide ini?
       options:
         - Ansible
         - n8n
         - Monitoring
         - Scripts
-        - Documentation
-        - General
+        - Dokumentasi
+        - Umum
     validations:
       required: true
-  
+
   - type: dropdown
     id: priority
     attributes:
-      label: Priority
-      description: How important is this idea?
+      label: Prioritas
+      description: Seberapa penting ide ini?
       options:
-        - Low
-        - Medium
-        - High
-        - Critical
+        - Rendah
+        - Sedang
+        - Tinggi
+        - Kritis
     validations:
       required: true

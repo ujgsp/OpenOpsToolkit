@@ -1,47 +1,43 @@
 ---
-name: Feature Request
-about: Suggest an idea for this project
+name: Usulan Fitur
+about: Ajukan ide atau fitur baru untuk OpenOps Toolkit
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
 ---
 
-## Is your feature request related to a problem? Please describe.
+## Masalah yang Dihadapi
 
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+Jelaskan masalah yang membuat Anda membutuhkan fitur ini. Contoh: "Saya selalu kesulitan ketika..."
 
-## Describe the solution you'd like
+## Solusi yang Diinginkan
 
-A clear and concise description of what you want to happen.
+Jelaskan apa yang Anda harapkan dari fitur ini.
 
-## Describe alternatives you've considered
+## Alternatif yang Sudah Dicoba
 
-A clear and concise description of any alternative solutions or features you've considered.
+Apakah ada cara lain yang sudah Anda coba? Jelaskan di sini.
 
-## Additional context
+## Informasi Tambahan
 
-Add any other context or screenshots about the feature request here.
+Lampirkan screenshot, mockup, atau konteks lain jika ada.
 
-## Use Case
+## Kasus Penggunaan
 
-Describe the use case for this feature. How would it be used?
+Bagaimana fitur ini akan digunakan dalam praktik?
 
-## Impact
+## Dampak
 
-- **Who benefits from this feature?** [e.g., developers, system administrators, end users]
-- **How many users would benefit?** [e.g., all users, specific group]
-- **Priority**: [e.g., low, medium, high, critical]
+- **Siapa yang terbantu?** [contoh: developer, sysadmin, user akhir]
+- **Berapa banyak yang terbantu?** [contoh: semua user, kelompok tertentu]
+- **Prioritas**: [rendah, sedang, tinggi, kritis]
 
-## Implementation Ideas
+## Ide Implementasi
 
-If you have ideas about how to implement this feature, please describe them here.
-
-## Mockups
-
-If applicable, add mockups or wireframes to help explain your idea.
+Kalau ada gagasan teknis tentang cara mewujudkannya, jelaskan di sini.
 
 ## Checklist
 
-- [ ] I have searched existing issues to avoid duplicates
-- [ ] I have provided a clear use case
-- [ ] I have considered alternatives
+- [ ] Saya sudah cari issue serupa agar tidak duplikat
+- [ ] Saya sudah jelaskan kasus penggunaan dengan jelas
+- [ ] Saya sudah pertimbangkan alternatif lain

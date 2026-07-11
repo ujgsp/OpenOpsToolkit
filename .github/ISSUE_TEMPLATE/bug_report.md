@@ -1,58 +1,58 @@
 ---
-name: Bug Report
-about: Create a report to help us improve
+name: Laporan Bug
+about: Laporkan masalah yang ditemukan agar bisa diperbaiki
 title: '[BUG] '
 labels: bug
 assignees: ''
 ---
 
-## Description
+## Deskripsi
 
-A clear and concise description of what the bug is.
+Jelaskan secara singkat dan jelas apa masalah yang terjadi.
 
-## Steps to Reproduce
+## Langkah Mengalami Bug
 
-1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
-4. See error
+1. Buka '...'
+2. Klik '...'
+3. Gulir ke '...'
+4. Muncul error
 
-## Expected Behavior
+## Yang Diharapkan
 
-A clear and concise description of what you expected to happen.
+Apa yang seharusnya terjadi setelah langkah di atas?
 
-## Actual Behavior
+## Yang Terjadi
 
-A clear and concise description of what actually happened.
+Apa yang sebenarnya terjadi?
 
-## Screenshots
+## Screenshot
 
-If applicable, add screenshots to help explain your problem.
+Kalau ada, lampirkan screenshot untuk membantu menjelaskan masalah.
 
-## Environment
+## Lingkungan
 
-- **OS**: [e.g., Ubuntu 22.04]
-- **Ansible Version**: [e.g., 2.9.27]
-- **Python Version**: [e.g., 3.10]
-- **Browser**: [e.g., Chrome, Safari] (if applicable)
-- **Node.js Version**: [e.g., 18.x] (if applicable)
+- **OS**: [contoh: Ubuntu 22.04]
+- **Versi Ansible**: [contoh: 2.9.27]
+- **Versi Python**: [contoh: 3.10]
+- **Browser**: [contoh: Chrome, Safari] (kalau relevan)
+- **Node.js**: [contoh: 18.x] (kalau relevan)
 
-## Additional Context
+## Informasi Tambahan
 
-Add any other context about the problem here.
+Ada konteks lain yang perlu diketahui? Tulis di sini.
 
-## Possible Solution
+## Solusi yang Disarankan
 
-If you have a suggestion for fixing the bug, please describe it here.
+Kalau ada ide perbaikan, jelaskan di sini.
 
-## Logs
+## Log
 
 ```
-Paste any relevant logs here
+Tempel log error atau output yang relevan di sini
 ```
 
 ## Checklist
 
-- [ ] I have searched existing issues to avoid duplicates
-- [ ] I have provided all the required information
-- [ ] I have tested with the latest version
+- [ ] Saya sudah cari issue serupa agar tidak duplikat
+- [ ] Saya sudah memberikan informasi yang lengkap
+- [ ] Saya sudah tes dengan versi terbaru

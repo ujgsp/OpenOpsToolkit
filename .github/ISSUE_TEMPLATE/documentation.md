@@ -1,57 +1,57 @@
 ---
-name: Documentation
-about: Improve or fix documentation
+name: Perbaikan Dokumentasi
+about: Usulkan perbaikan atau penambahan dokumentasi
 title: '[DOCS] '
 labels: documentation
 assignees: ''
 ---
 
-## Description
+## Deskripsi
 
-A clear and concise description of the documentation issue.
+Jelaskan masalah atau kekurangan pada dokumentasi yang ingin diperbaiki.
 
-## Location
+## Lokasi
 
-Where is the documentation issue located?
-- **File**: [e.g., README.md, docs/deployment/laravel.md]
-- **Section**: [e.g., Installation, Configuration]
-- **Line Number**: [e.g., 42] (if applicable)
+Di mana letak masalah dokumentasi ini?
+- **File**: [contoh: README.md, docs/deployment/laravel.md]
+- **Bagian**: [contoh: Instalasi, Konfigurasi]
+- **Nomor Baris**: [contoh: 42] (kalau diketahui)
 
-## Current Documentation
+## Dokumentasi Saat Ini
 
-What does the current documentation say?
-
-```
-Paste the current documentation here
-```
-
-## Proposed Changes
-
-What should the documentation say instead?
+Apa yang tertulis sekarang?
 
 ```
-Paste the proposed documentation here
+Tempel isi dokumentasi yang ada di sini
 ```
 
-## Why is this change needed?
+## Usulan Perubahan
 
-- [ ] Incorrect information
-- [ ] Missing information
-- [ ] Outdated information
-- [ ] Unclear instructions
-- [ ] Typos or grammar issues
-- [ ] Other: [describe]
+Seharusnya seperti apa?
 
-## Additional Context
+```
+Tempel isi dokumentasi yang diusulkan di sini
+```
 
-Add any other context about the documentation issue here.
+## Mengapa Perlu Diubah?
 
-## Related Issues
+- [ ] Informasi yang salah
+- [ ] Informasi yang kurang lengkap
+- [ ] Informasi yang sudah usang
+- [ ] Penjelasan yang membingungkan
+- [ ] Kesalahan ketik atau tata bahasa
+- [ ] Lainnya: [sebutkan]
 
-Are there any related issues or pull requests?
+## Informasi Tambahan
+
+Ada konteks lain yang relevan? Tulis di sini.
+
+## Issue Terkait
+
+Apakah ada issue atau pull request yang berkaitan?
 
 ## Checklist
 
-- [ ] I have searched existing issues to avoid duplicates
-- [ ] I have provided the exact location of the issue
-- [ ] I have provided both current and proposed documentation
+- [ ] Saya sudah cari issue serupa agar tidak duplikat
+- [ ] Saya sudah berikan lokasi pasti masalahnya
+- [ ] Saya sudah lampirkan isi dokumentasi saat ini dan usulan perubahannya
