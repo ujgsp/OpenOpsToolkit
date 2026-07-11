@@ -1,0 +1,7 @@
+---
+# Audit Network — Default Thresholds
+
+audit_ports_warn: 10
+audit_ports_fail: 20
+audit_public_ports_warn: 3
+audit_public_ports_fail: 5

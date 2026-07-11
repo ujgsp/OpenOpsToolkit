@@ -1,0 +1,7 @@
+---
+# Audit PHP — Default Thresholds
+
+audit_php_upload_max_warn: 32
+audit_php_upload_max_fail: 64
+audit_php_memory_limit_warn: 256
+audit_php_memory_limit_fail: 512

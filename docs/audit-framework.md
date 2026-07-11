@@ -27,6 +27,11 @@ roles/
   audit_security/      → SSH, firewall, fail2ban, sudo, passwords, SUID
   audit_storage/       → Disk usage
   audit_services/      → Running services count
+  audit_network/       → Open ports, connections, DNS, public IP
+  audit_nginx/         → Config test, status, workers, error log
+  audit_apache/        → Config test, status, modules, error log
+  audit_openlitespeed/ → Config check, status
+  audit_php/           → Version, FPM, modules, limits
 playbooks/audit.yml    → Entry point
 plugins/filter/        → Format conversion (JSON → Markdown)
 reports/               → Output directory (auto-created)
@@ -40,6 +45,11 @@ reports/               → Output directory (auto-created)
 | `audit_security` | SSH root/password/port, firewall, fail2ban, failed logins, sudo, password policy, SUID | `audit_security`, `security` |
 | `audit_storage` | Disk usage on `/` | `audit_storage`, `storage` |
 | `audit_services` | Running services count | `audit_services`, `services` |
+| `audit_network` | Open ports, active connections, DNS resolution, public IP | `audit_network`, `network` |
+| `audit_nginx` | Installation, config test, service status, workers, error log | `audit_nginx`, `nginx`, `webserver` |
+| `audit_apache` | Installation, config test, service status, modules, error log | `audit_apache`, `apache`, `webserver` |
+| `audit_openlitespeed` | Installation, service status, config check | `audit_openlitespeed`, `ols`, `webserver` |
+| `audit_php` | Version, FPM, modules, upload_max_filesize, memory_limit | `audit_php`, `php` |
 
 ## Output
 
@@ -94,6 +104,8 @@ audit_failed_logins_warn: 10
 audit_failed_logins_fail: 50
 audit_services_warn: 20
 audit_services_fail: 40
+audit_ports_warn: 10
+audit_ports_fail: 20
 audit_output_format: markdown  # json | markdown | yaml
 ```
 

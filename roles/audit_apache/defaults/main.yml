@@ -1,0 +1,5 @@
+---
+# Audit Apache — Default Thresholds
+
+audit_apache_modules_warn: 10
+audit_apache_modules_fail: 20

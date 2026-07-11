@@ -1,6 +1,6 @@
 ---
 # Audit Framework — Entry Point
-# Run security, OS, storage, and services audit on target servers.
+# Run security, OS, storage, services, network, and web server audit on target servers.
 #
 # Usage:
 #   ansible-playbook -i inventories/production/inventory.yml playbooks/audit.yml
@@ -13,6 +13,7 @@
   become: true
 
   roles:
+    # Phase 1
     - role: audit_os
       tags: [audit_os, os]
     - role: audit_security
@@ -21,6 +22,18 @@
       tags: [audit_storage, storage]
     - role: audit_services
       tags: [audit_services, services]
+
+    # Phase 2
+    - role: audit_network
+      tags: [audit_network, network]
+    - role: audit_nginx
+      tags: [audit_nginx, nginx, webserver]
+    - role: audit_apache
+      tags: [audit_apache, apache, webserver]
+    - role: audit_openlitespeed
+      tags: [audit_openlitespeed, ols, webserver]
+    - role: audit_php
+      tags: [audit_php, php]
 
   post_tasks:
     - name: Include audit report generation
