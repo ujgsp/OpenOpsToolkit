@@ -1,0 +1,33 @@
+---
+# Audit Services — Running Services
+
+- name: Initialize audit_results for services module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit Services — Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Audit Services — Count running services
+  ansible.builtin.set_fact:
+    _running_services: >-
+      {{ ansible_facts.services | default({}) | dict2items
+         | selectattr('value.state', 'equalto', 'running') | list | length }}
+
+- name: Audit Services — Set running services result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'running_services',
+           'category': 'services',
+           'name': 'Running Services',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (_running_services | int < audit_services_warn | default(20)) else ('WARN' if (_running_services | int < audit_services_fail | default(40)) else 'FAIL'),
+           'message': _running_services ~ ' services running',
+           'details': {
+             'count': _running_services | int,
+             'threshold_warn': audit_services_warn | default(20),
+             'threshold_fail': audit_services_fail | default(40)
+           },
+           'recommendation': '' if (_running_services | int < audit_services_warn | default(20)) else 'Review and disable unnecessary services to reduce attack surface'
+         }] }}"

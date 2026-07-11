@@ -1,0 +1,113 @@
+---
+# Audit Network — Open Ports, Connections, DNS
+
+- name: Initialize audit_results for network module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+# --- Open Ports ---
+
+- name: Audit Network — List listening ports
+  ansible.builtin.shell: ss -tlnp 2>/dev/null | tail -n +2 | wc -l
+  register: audit_port_count
+  changed_when: false
+  failed_when: false
+
+- name: Audit Network — List public ports (0.0.0.0 or *)
+  ansible.builtin.shell: ss -tlnp 2>/dev/null | tail -n +2 | grep -cE '0\.0\.0\.0:\*|\*:' || echo "0"
+  register: audit_public_ports
+  changed_when: false
+  failed_when: false
+
+- name: Audit Network — Set open ports result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'network_open_ports',
+           'category': 'network',
+           'name': 'Open Ports',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_port_count.stdout | int < audit_ports_warn | default(10)) else ('WARN' if (audit_port_count.stdout | int < audit_ports_fail | default(20)) else 'FAIL'),
+           'message': audit_port_count.stdout ~ ' listening ports (' ~ audit_public_ports.stdout ~ ' public)',
+           'details': {
+             'total_ports': audit_port_count.stdout | int,
+             'public_ports': audit_public_ports.stdout | int,
+             'threshold_warn': audit_ports_warn | default(10),
+             'threshold_fail': audit_ports_fail | default(20)
+           },
+           'recommendation': '' if (audit_port_count.stdout | int < audit_ports_warn | default(10)) else 'Review and close unnecessary ports'
+         }] }}"
+
+# --- Active Connections ---
+
+- name: Audit Network — Count active connections
+  ansible.builtin.shell: ss -tnp 2>/dev/null | tail -n +2 | wc -l
+  register: audit_active_conns
+  changed_when: false
+  failed_when: false
+
+- name: Audit Network — Set active connections result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'network_active_connections',
+           'category': 'network',
+           'name': 'Active Connections',
+           'severity': 'INFO',
+           'status': 'PASS',
+           'message': audit_active_conns.stdout ~ ' active TCP connections',
+           'details': {'count': audit_active_conns.stdout | int},
+           'recommendation': ''
+         }] }}"
+
+# --- DNS Resolution ---
+
+- name: Audit Network — Check DNS resolution
+  ansible.builtin.shell: |
+    if host example.com >/dev/null 2>&1 || nslookup example.com >/dev/null 2>&1; then
+      echo "ok"
+    else
+      echo "failed"
+    fi
+  register: audit_dns_check
+  changed_when: false
+  failed_when: false
+
+- name: Audit Network — Set DNS result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'network_dns_resolution',
+           'category': 'network',
+           'name': 'DNS Resolution',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_dns_check.stdout == 'ok') else 'FAIL',
+           'message': 'DNS resolution working' if (audit_dns_check.stdout == 'ok') else 'DNS resolution failed',
+           'details': {'status': audit_dns_check.stdout},
+           'recommendation': '' if (audit_dns_check.stdout == 'ok') else 'Check /etc/resolv.conf and DNS server configuration'
+         }] }}"
+
+# --- Public IP ---
+
+- name: Audit Network — Get public IP
+  ansible.builtin.uri:
+    url: https://api.ipify.org
+    return_content: true
+    timeout: 5
+  register: audit_public_ip
+  changed_when: false
+  failed_when: false
+
+- name: Audit Network — Set public IP result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'network_public_ip',
+           'category': 'network',
+           'name': 'Public IP',
+           'severity': 'INFO',
+           'status': 'PASS',
+           'message': 'Public IP: ' ~ audit_public_ip.content,
+           'details': {'public_ip': audit_public_ip.content},
+           'recommendation': ''
+         }] }}"

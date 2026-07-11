@@ -1,0 +1,28 @@
+---
+# Audit Security — Orchestrator
+# Include all security audit sub-tasks.
+
+- name: Initialize audit_results for security module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Include SSH audit
+  ansible.builtin.include_tasks: ssh.yml
+
+- name: Include firewall audit
+  ansible.builtin.include_tasks: firewall.yml
+
+- name: Include fail2ban audit
+  ansible.builtin.include_tasks: fail2ban.yml
+
+- name: Include login attempts audit
+  ansible.builtin.include_tasks: login_attempts.yml
+
+- name: Include sudo audit
+  ansible.builtin.include_tasks: sudo.yml
+
+- name: Include password policy audit
+  ansible.builtin.include_tasks: password_policy.yml
+
+- name: Include SUID audit
+  ansible.builtin.include_tasks: suid.yml

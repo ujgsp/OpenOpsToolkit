@@ -1,0 +1,7 @@
+---
+# Audit Docker — Default Thresholds
+
+audit_docker_containers_warn: 10
+audit_docker_containers_fail: 20
+audit_docker_images_warn: 5
+audit_docker_images_fail: 15

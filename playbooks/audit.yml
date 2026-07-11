@@ -1,0 +1,49 @@
+---
+# Audit Framework — Entry Point
+# Run all audit modules on target servers.
+
+- name: Server Audit
+  hosts: all
+  gather_facts: true
+  become: true
+
+  roles:
+    # Phase 1 — Core + Security + OS
+    - role: audit_os
+      tags: [audit_os, os]
+    - role: audit_security
+      tags: [audit_security, security]
+    - role: audit_storage
+      tags: [audit_storage, storage]
+    - role: audit_services
+      tags: [audit_services, services]
+
+    # Phase 2 — Network + Web Servers + PHP
+    - role: audit_network
+      tags: [audit_network, network]
+    - role: audit_nginx
+      tags: [audit_nginx, nginx, webserver]
+    - role: audit_apache
+      tags: [audit_apache, apache, webserver]
+    - role: audit_openlitespeed
+      tags: [audit_openlitespeed, ols, webserver]
+    - role: audit_php
+      tags: [audit_php, php]
+
+    # Phase 3 — Database + Container + SSL
+    - role: audit_mysql
+      tags: [audit_mysql, mysql, database]
+    - role: audit_postgresql
+      tags: [audit_postgresql, postgresql, database]
+    - role: audit_docker
+      tags: [audit_docker, docker, container]
+    - role: audit_ssl
+      tags: [audit_ssl, ssl]
+
+  post_tasks:
+    - name: Include audit report generation
+      ansible.builtin.include_role:
+        name: audit_core
+      vars:
+        audit_results: "{{ audit_results | default([]) }}"
+      tags: [audit_report, report]

@@ -1,0 +1,31 @@
+---
+# Audit Storage — Disk Usage
+
+- name: Initialize audit_results for storage module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit Storage — Check root disk usage
+  ansible.builtin.set_fact:
+    _disk_total: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_total') | first | default(0) }}"
+    _disk_used: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_usage') | first | default(0) }}"
+    _disk_avail: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | default(0) }}"
+    _disk_percent: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_usage') | first | default(0) | int }}"
+
+- name: Audit Storage — Set disk usage result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'disk_usage_root',
+           'category': 'storage',
+           'name': 'Disk Usage (/)',
+           'severity': 'HIGH',
+           'status': 'PASS' if (_disk_percent | int < audit_disk_warn_percent | default(50)) else ('WARN' if (_disk_percent | int < audit_disk_fail_percent | default(80)) else 'FAIL'),
+           'message': 'Disk usage: ' ~ _disk_percent ~ '% (' ~ (_disk_avail | int // (1024*1024*1024)) ~ ' GB available)',
+           'details': {
+             'total_bytes': _disk_total | int,
+             'used_percent': _disk_percent | int,
+             'available_bytes': _disk_avail | int
+           },
+           'recommendation': '' if (_disk_percent | int < audit_disk_warn_percent | default(50)) else 'Free disk space or expand volume'
+         }] }}"

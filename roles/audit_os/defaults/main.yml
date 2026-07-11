@@ -1,0 +1,5 @@
+---
+# Audit OS — Default Thresholds
+
+# Unattended upgrades
+audit_unattended_upgrades_required: true

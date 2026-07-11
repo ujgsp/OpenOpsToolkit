@@ -1,0 +1,33 @@
+---
+# Audit Security — Firewall Check
+
+- name: Audit Security — Detect firewall status
+  ansible.builtin.shell: |
+    if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -qw "active"; then
+      echo "active:ufw"
+    elif command -v firewall-cmd >/dev/null 2>&1 && firewall-cmd --state 2>/dev/null | grep -q "running"; then
+      echo "active:firewalld"
+    elif command -v iptables >/dev/null 2>&1 && iptables -L -n 2>/dev/null | grep -q "Chain INPUT"; then
+      echo "active:iptables"
+    elif command -v nft >/dev/null 2>&1 && nft list ruleset 2>/dev/null | grep -q "table"; then
+      echo "active:nftables"
+    else
+      echo "inactive:none"
+    fi
+  register: audit_firewall_status
+  changed_when: false
+  failed_when: false
+
+- name: Audit Security — Set firewall result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'firewall_status',
+           'category': 'security',
+           'name': 'Firewall Status',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_firewall_status.stdout | split(':') | first == 'active') else 'FAIL',
+           'message': 'Firewall active (' ~ (audit_firewall_status.stdout | split(':') | last) ~ ')' if (audit_firewall_status.stdout | split(':') | first == 'active') else 'No active firewall detected',
+           'details': {'tool': audit_firewall_status.stdout | split(':') | last},
+           'recommendation': '' if (audit_firewall_status.stdout | split(':') | first == 'active') else 'Install and enable a firewall (ufw, firewalld, or iptables)'
+         }] }}"

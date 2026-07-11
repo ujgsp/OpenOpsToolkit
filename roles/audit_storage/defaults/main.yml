@@ -1,0 +1,5 @@
+---
+# Audit Storage — Default Thresholds
+
+audit_disk_warn_percent: 50
+audit_disk_fail_percent: 80

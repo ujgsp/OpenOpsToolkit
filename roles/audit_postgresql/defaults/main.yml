@@ -1,0 +1,5 @@
+---
+# Audit PostgreSQL — Default Thresholds
+
+audit_pg_max_connections_warn: 100
+audit_pg_max_connections_fail: 200

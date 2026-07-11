@@ -1,0 +1,45 @@
+---
+# Audit Core — Report Generation
+# This role aggregates audit_results from all audit modules and generates reports.
+
+- name: Add timestamp to all audit results
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results | default([]) | map('combine', {
+           'hostname': inventory_hostname,
+           'timestamp': lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ')
+         }) | list }}
+
+- name: Ensure output directory exists
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/{{ audit_output_dir | default('reports') }}"
+    state: directory
+    mode: "0755"
+  delegate_to: localhost
+  become: false
+
+- name: Generate JSON report
+  ansible.builtin.copy:
+    content: "{{ audit_results | to_audit_json }}"
+    dest: "{{ playbook_dir }}/{{ audit_output_dir | default('reports') }}/audit-{{ lookup('pipe', 'date -u +%Y%m%d_%H%M%S') }}.json"
+    mode: "0644"
+  delegate_to: localhost
+  become: false
+  when: audit_output_format | default('json') == 'json'
+
+- name: Generate Markdown report
+  ansible.builtin.copy:
+    content: "{{ audit_results | to_audit_markdown }}"
+    dest: "{{ playbook_dir }}/{{ audit_output_dir | default('reports') }}/audit-{{ lookup('pipe', 'date -u +%Y%m%d_%H%M%S') }}.md"
+    mode: "0644"
+  delegate_to: localhost
+  become: false
+  when: audit_output_format | default('json') in ['json', 'markdown']
+
+- name: Print summary
+  ansible.builtin.debug:
+    msg: >-
+      Audit complete for {{ inventory_hostname }}:
+      {{ audit_results | selectattr('status', 'equalto', 'PASS') | list | length }} PASS,
+      {{ audit_results | selectattr('status', 'equalto', 'WARN') | list | length }} WARN,
+      {{ audit_results | selectattr('status', 'equalto', 'FAIL') | list | length }} FAIL

@@ -1,0 +1,158 @@
+---
+# Audit PHP — Version, FPM, Modules, Limits
+
+- name: Initialize audit_results for php module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit PHP — Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Audit PHP — Detect installed PHP version
+  ansible.builtin.set_fact:
+    _php_versions: >-
+      {{ ansible_facts.packages | dict2items
+         | selectattr('key', 'match', 'php[0-9]+\\.[0-9]+-cli')
+         | map(attribute='key')
+         | map('regex_replace', '-cli', '')
+         | list }}
+    _php_installed: >-
+      {{ ansible_facts.packages | dict2items
+         | selectattr('key', 'match', 'php[0-9]+\\.[0-9]+-cli') | list | length > 0 }}
+
+# --- Installation + Version ---
+
+- name: Audit PHP — Set installation result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'php_installed',
+           'category': 'php',
+           'name': 'PHP Installed',
+           'severity': 'INFO',
+           'status': 'PASS' if (_php_installed) else 'WARN',
+           'message': 'PHP ' ~ (_php_versions | first | default('unknown')) ~ ' installed' if (_php_installed) else 'PHP not installed',
+           'details': {'versions': _php_versions},
+           'recommendation': ''
+         }] }}"
+
+# --- Version Check ---
+
+- name: Audit PHP — Check if version is supported
+  ansible.builtin.shell: |
+    php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;' 2>/dev/null || echo "unknown"
+  register: audit_php_version
+  changed_when: false
+  failed_when: false
+
+- name: Audit PHP — Set version check result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'php_version_support',
+           'category': 'php',
+           'name': 'PHP Version Support',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_php_version.stdout is search('^[89]\\.')) else 'WARN',
+           'message': 'PHP ' ~ audit_php_version.stdout ~ ' (supported)' if (audit_php_version.stdout is search('^[89]\\.')) else 'PHP ' ~ audit_php_version.stdout ~ ' (may be unsupported)',
+           'details': {'version': audit_php_version.stdout},
+           'recommendation': '' if (audit_php_version.stdout is search('^[89]\\.')) else 'Upgrade to PHP 8.x or newer'
+         }] }}"
+  when: _php_installed
+
+# --- FPM Status ---
+
+- name: Audit PHP — Check PHP-FPM
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Audit PHP — Set FPM result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'php_fpm_installed',
+           'category': 'php',
+           'name': 'PHP-FPM',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (_php_fpm_installed) else 'WARN',
+           'message': 'PHP-FPM installed' if (_php_fpm_installed) else 'PHP-FPM not installed',
+           'details': {'installed': _php_fpm_installed},
+           'recommendation': '' if (_php_fpm_installed) else 'Install php-fpm for production use'
+         }] }}"
+
+- name: Audit PHP — Detect FPM package
+  ansible.builtin.set_fact:
+    _php_fpm_installed: >-
+      {{ ansible_facts.packages | dict2items
+         | selectattr('key', 'match', 'php[0-9]+\\.[0-9]+-fpm') | list | length > 0 }}
+  when: _php_installed
+
+# --- Modules ---
+
+- name: Audit PHP — Check loaded modules
+  ansible.builtin.shell: php -m 2>/dev/null | wc -l
+  register: audit_php_modules
+  changed_when: false
+  failed_when: false
+
+- name: Audit PHP — Set modules result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'php_modules_loaded',
+           'category': 'php',
+           'name': 'PHP Modules',
+           'severity': 'INFO',
+           'status': 'PASS',
+           'message': audit_php_modules.stdout ~ ' modules loaded',
+           'details': {'count': audit_php_modules.stdout | int},
+           'recommendation': ''
+         }] }}"
+  when: _php_installed and audit_php_modules.stdout | length > 0
+
+# --- Upload Max Filesize ---
+
+- name: Audit PHP — Check upload_max_filesize
+  ansible.builtin.shell: php -i 2>/dev/null | grep "upload_max_filesize" | head -1 | awk '{print $NF}' | tr -d 'M'
+  register: audit_php_upload
+  changed_when: false
+  failed_when: false
+
+- name: Audit PHP — Set upload limit result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'php_upload_max_filesize',
+           'category': 'php',
+           'name': 'PHP Upload Max Filesize',
+           'severity': 'LOW',
+           'status': 'PASS' if (audit_php_upload.stdout | int >= audit_php_upload_max_warn | default(32)) else 'WARN',
+           'message': 'upload_max_filesize: ' ~ audit_php_upload.stdout ~ 'M',
+           'details': {'value_mb': audit_php_upload.stdout | int},
+           'recommendation': '' if (audit_php_upload.stdout | int >= audit_php_upload_max_warn | default(32)) else 'Increase upload_max_filesize in php.ini'
+         }] }}"
+  when: _php_installed and audit_php_upload.stdout | length > 0
+
+# --- Memory Limit ---
+
+- name: Audit PHP — Check memory_limit
+  ansible.builtin.shell: php -i 2>/dev/null | grep "memory_limit" | head -1 | awk '{print $NF}' | tr -d 'M'
+  register: audit_php_memory
+  changed_when: false
+  failed_when: false
+
+- name: Audit PHP — Set memory limit result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'php_memory_limit',
+           'category': 'php',
+           'name': 'PHP Memory Limit',
+           'severity': 'LOW',
+           'status': 'PASS' if (audit_php_memory.stdout | int >= audit_php_memory_limit_warn | default(256)) else 'WARN',
+           'message': 'memory_limit: ' ~ audit_php_memory.stdout ~ 'M',
+           'details': {'value_mb': audit_php_memory.stdout | int},
+           'recommendation': '' if (audit_php_memory.stdout | int >= audit_php_memory_limit_warn | default(256)) else 'Increase memory_limit in php.ini'
+         }] }}"
+  when: _php_installed and audit_php_memory.stdout | length > 0

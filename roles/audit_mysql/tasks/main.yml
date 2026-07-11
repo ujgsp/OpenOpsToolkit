@@ -1,0 +1,156 @@
+---
+# Audit MySQL/MariaDB — Config, Status, Security
+
+- name: Initialize audit_results for mysql module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit MySQL — Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Audit MySQL — Detect MySQL/MariaDB
+  ansible.builtin.set_fact:
+    _mysql_installed: >-
+      {{ ansible_facts.packages | dict2items
+         | selectattr('key', 'match', 'mysql-server|mariadb-server') | list | length > 0 }}
+    _mysql_service: >-
+      {{ 'mysql.service' if ('mysql-server' in ansible_facts.packages)
+         else ('mariadb.service' if ('mariadb-server' in ansible_facts.packages) else '') }}
+
+# --- Installation ---
+
+- name: Audit MySQL — Set installation result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'mysql_installed',
+           'category': 'database',
+           'name': 'MySQL/MariaDB Installed',
+           'severity': 'INFO',
+           'status': 'PASS' if (_mysql_installed) else 'WARN',
+           'message': 'MySQL/MariaDB installed' if (_mysql_installed) else 'MySQL/MariaDB not installed',
+           'details': {'installed': _mysql_installed},
+           'recommendation': ''
+         }] }}"
+
+# --- Service Status ---
+
+- name: Audit MySQL — Gather service facts
+  ansible.builtin.service_facts:
+  when: _mysql_installed
+
+- name: Audit MySQL — Set service status result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'mysql_service_status',
+           'category': 'database',
+           'name': 'MySQL Service Status',
+           'severity': 'HIGH',
+           'status': 'PASS' if (ansible_facts.services[_mysql_service]['state'] | default('stopped') == 'running') else 'FAIL',
+           'message': 'MySQL is running' if (ansible_facts.services[_mysql_service]['state'] | default('stopped') == 'running') else 'MySQL is not running',
+           'details': {'state': ansible_facts.services[_mysql_service]['state'] | default('not_found')},
+           'recommendation': '' if (ansible_facts.services[_mysql_service]['state'] | default('stopped') == 'running') else 'Start MySQL service'
+         }] }}"
+  when: _mysql_installed and _mysql_service | length > 0
+
+# --- Root Password ---
+
+- name: Audit MySQL — Check root password
+  ansible.builtin.shell: |
+    mysqladmin -u root status 2>/dev/null && echo "nopassword" || echo "haspassword"
+  register: audit_mysql_root_pw
+  changed_when: false
+  failed_when: false
+  when: _mysql_installed
+
+- name: Audit MySQL — Set root password result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'mysql_root_password',
+           'category': 'database',
+           'name': 'MySQL Root Password',
+           'severity': 'CRITICAL',
+           'status': 'PASS' if (audit_mysql_root_pw.stdout == 'haspassword') else 'FAIL',
+           'message': 'Root password is set' if (audit_mysql_root_pw.stdout == 'haspassword') else 'Root has no password',
+           'details': {'has_password': audit_mysql_root_pw.stdout == 'haspassword'},
+           'recommendation': '' if (audit_mysql_root_pw.stdout == 'haspassword') else 'Set root password: mysqladmin -u root password NEWPASSWORD'
+         }] }}"
+  when: _mysql_installed
+
+# --- Anonymous Users ---
+
+- name: Audit MySQL — Check anonymous users
+  ansible.builtin.shell: |
+    mysql -u root -N -e "SELECT COUNT(*) FROM mysql.user WHERE User=''" 2>/dev/null || echo "1"
+  register: audit_mysql_anon
+  changed_when: false
+  failed_when: false
+  when: _mysql_installed
+
+- name: Audit MySQL — Set anonymous users result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'mysql_anonymous_users',
+           'category': 'database',
+           'name': 'MySQL Anonymous Users',
+           'severity': 'CRITICAL',
+           'status': 'PASS' if (audit_mysql_anon.stdout | int == 0) else 'FAIL',
+           'message': 'No anonymous users' if (audit_mysql_anon.stdout | int == 0) else audit_mysql_anon.stdout ~ ' anonymous user(s) found',
+           'details': {'count': audit_mysql_anon.stdout | int},
+           'recommendation': '' if (audit_mysql_anon.stdout | int == 0) else 'Remove anonymous users: DROP USER ""@localhost'
+         }] }}"
+  when: _mysql_installed
+
+# --- Max Connections ---
+
+- name: Audit MySQL — Check max_connections
+  ansible.builtin.shell: |
+    mysql -u root -N -e "SHOW VARIABLES LIKE 'max_connections'" 2>/dev/null | awk '{print $2}' || echo "151"
+  register: audit_mysql_max_conn
+  changed_when: false
+  failed_when: false
+  when: _mysql_installed
+
+- name: Audit MySQL — Set max connections result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'mysql_max_connections',
+           'category': 'database',
+           'name': 'MySQL Max Connections',
+           'severity': 'LOW',
+           'status': 'PASS',
+           'message': 'max_connections: ' ~ audit_mysql_max_conn.stdout,
+           'details': {'max_connections': audit_mysql_max_conn.stdout | int},
+           'recommendation': ''
+         }] }}"
+  when: _mysql_installed and audit_mysql_max_conn.stdout | length > 0
+
+# --- Binary Logging ---
+
+- name: Audit MySQL — Check binary logging
+  ansible.builtin.shell: |
+    mysql -u root -N -e "SHOW VARIABLES LIKE 'log_bin'" 2>/dev/null | awk '{print $2}' || echo "OFF"
+  register: audit_mysql_binlog
+  changed_when: false
+  failed_when: false
+  when: _mysql_installed
+
+- name: Audit MySQL — Set binary logging result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'mysql_binary_logging',
+           'category': 'database',
+           'name': 'MySQL Binary Logging',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_mysql_binlog.stdout == 'ON') else 'WARN',
+           'message': 'Binary logging is enabled' if (audit_mysql_binlog.stdout == 'ON') else 'Binary logging is disabled',
+           'details': {'enabled': audit_mysql_binlog.stdout == 'ON'},
+           'recommendation': '' if (audit_mysql_binlog.stdout == 'ON') else 'Enable binary logging for point-in-time recovery'
+         }] }}"
+  when: _mysql_installed

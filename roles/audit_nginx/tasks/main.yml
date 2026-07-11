@@ -1,0 +1,127 @@
+---
+# Audit Nginx — Config, Status, Workers
+
+- name: Initialize audit_results for nginx module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit Nginx — Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+# --- Installation ---
+
+- name: Audit Nginx — Set installation result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'nginx_installed',
+           'category': 'webserver',
+           'name': 'Nginx Installed',
+           'severity': 'INFO',
+           'status': 'PASS' if ('nginx' in ansible_facts.packages) else 'WARN',
+           'message': 'Nginx ' ~ (ansible_facts.packages['nginx'] | first).version ~ ' installed' if ('nginx' in ansible_facts.packages) else 'Nginx not installed',
+           'details': {'installed': 'nginx' in ansible_facts.packages},
+           'recommendation': ''
+         }] }}"
+
+# --- Config Test ---
+
+- name: Audit Nginx — Test configuration
+  ansible.builtin.shell: nginx -t 2>&1
+  register: audit_nginx_test
+  changed_when: false
+  failed_when: false
+  when: "'nginx' in ansible_facts.packages"
+
+- name: Audit Nginx — Set config test result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'nginx_config_test',
+           'category': 'webserver',
+           'name': 'Nginx Config Test',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_nginx_test.rc == 0) else 'FAIL',
+           'message': 'Configuration is valid' if (audit_nginx_test.rc == 0) else 'Configuration error: ' ~ audit_nginx_test.stderr_lines | first,
+           'details': {'valid': audit_nginx_test.rc == 0, 'output': audit_nginx_test.stdout_lines[:3]},
+           'recommendation': '' if (audit_nginx_test.rc == 0) else 'Fix nginx configuration errors'
+         }] }}"
+  when: "'nginx' in ansible_facts.packages"
+
+# --- Service Status ---
+
+- name: Audit Nginx — Gather service facts
+  ansible.builtin.service_facts:
+  when: "'nginx' in ansible_facts.packages"
+
+- name: Audit Nginx — Set service status result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'nginx_service_status',
+           'category': 'webserver',
+           'name': 'Nginx Service Status',
+           'severity': 'HIGH',
+           'status': 'PASS' if (ansible_facts.services['nginx.service']['state'] | default('stopped') == 'running') else 'FAIL',
+           'message': 'Nginx is running' if (ansible_facts.services['nginx.service']['state'] | default('stopped') == 'running') else 'Nginx is not running',
+           'details': {'state': ansible_facts.services['nginx.service']['state'] | default('not_found')},
+           'recommendation': '' if (ansible_facts.services['nginx.service']['state'] | default('stopped') == 'running') else 'Start nginx service'
+         }] }}"
+  when: "'nginx' in ansible_facts.packages and 'nginx.service' in ansible_facts.services"
+
+# --- Worker Processes ---
+
+- name: Audit Nginx — Check worker processes
+  ansible.builtin.shell: |
+    nginx -T 2>/dev/null | grep -oP 'worker_processes\s+\K[^;]+' | tr -d ' '
+  register: audit_nginx_workers
+  changed_when: false
+  failed_when: false
+  when: "'nginx' in ansible_facts.packages"
+
+- name: Audit Nginx — Set worker processes result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'nginx_worker_processes',
+           'category': 'webserver',
+           'name': 'Nginx Worker Processes',
+           'severity': 'LOW',
+           'status': 'PASS',
+           'message': 'Worker processes: ' ~ audit_nginx_workers.stdout,
+           'details': {'workers': audit_nginx_workers.stdout},
+           'recommendation': ''
+         }] }}"
+  when: "'nginx' in ansible_facts.packages and audit_nginx_workers.stdout | length > 0"
+
+# --- Error Log ---
+
+- name: Audit Nginx — Check error log
+  ansible.builtin.shell: |
+    log="/var/log/nginx/error.log"
+    if [ -f "$log" ]; then
+      errors=$(tail -100 "$log" 2>/dev/null | grep -c "\[emerg\]\|\[alert\]\|\[crit\]" || echo 0)
+      echo "$errors"
+    else
+      echo "0"
+    fi
+  register: audit_nginx_errors
+  changed_when: false
+  failed_when: false
+  when: "'nginx' in ansible_facts.packages"
+
+- name: Audit Nginx — Set error log result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'nginx_error_log',
+           'category': 'webserver',
+           'name': 'Nginx Error Log',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_nginx_errors.stdout | int == 0) else 'WARN',
+           'message': 'No critical errors in last 100 lines' if (audit_nginx_errors.stdout | int == 0) else audit_nginx_errors.stdout ~ ' critical errors found',
+           'details': {'critical_errors': audit_nginx_errors.stdout | int},
+           'recommendation': '' if (audit_nginx_errors.stdout | int == 0) else 'Check /var/log/nginx/error.log for details'
+         }] }}"
+  when: "'nginx' in ansible_facts.packages"

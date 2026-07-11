@@ -1,0 +1,32 @@
+---
+# Audit Security — Intrusion Prevention (fail2ban / crowdsec)
+
+- name: Audit Security — Check IPS status
+  ansible.builtin.shell: |
+    installed=0
+    active=0
+    if dpkg -l 2>/dev/null | grep -q "fail2ban"; then
+      installed=1
+      systemctl is-active fail2ban >/dev/null 2>&1 && active=1
+    elif dpkg -l 2>/dev/null | grep -q "crowdsec"; then
+      installed=1
+      systemctl is-active crowdsec >/dev/null 2>&1 && active=1
+    fi
+    echo "${installed}:${active}"
+  register: audit_ips_status
+  changed_when: false
+  failed_when: false
+
+- name: Audit Security — Set IPS result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'intrusion_prevention',
+           'category': 'security',
+           'name': 'Intrusion Prevention',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_ips_status.stdout == '1:1') else ('WARN' if (audit_ips_status.stdout == '1:0') else 'FAIL'),
+           'message': 'IPS installed and active' if (audit_ips_status.stdout == '1:1') else ('IPS installed but not active' if (audit_ips_status.stdout == '1:0') else 'No IPS installed'),
+           'details': {'installed': audit_ips_status.stdout.split(':')[0] == '1', 'active': audit_ips_status.stdout.split(':')[1] == '1'},
+           'recommendation': '' if (audit_ips_status.stdout == '1:1') else 'Install and enable fail2ban or crowdsec'
+         }] }}"

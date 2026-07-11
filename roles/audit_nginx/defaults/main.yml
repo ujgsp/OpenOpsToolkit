@@ -1,0 +1,10 @@
+---
+# Audit Nginx — Default Thresholds
+
+# Worker process auto-detection
+audit_nginx_worker_warn: 4
+audit_nginx_worker_fail: 8
+
+# Client max body size (MB)
+audit_nginx_body_size_warn: 32
+audit_nginx_body_size_fail: 64

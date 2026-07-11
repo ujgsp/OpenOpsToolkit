@@ -1,0 +1,126 @@
+---
+# Audit Apache — Config, Status, Modules
+
+- name: Initialize audit_results for apache module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit Apache — Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+# --- Installation ---
+
+- name: Audit Apache — Set installation result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'apache_installed',
+           'category': 'webserver',
+           'name': 'Apache Installed',
+           'severity': 'INFO',
+           'status': 'PASS' if ('apache2' in ansible_facts.packages) else 'WARN',
+           'message': 'Apache ' ~ (ansible_facts.packages['apache2'] | first).version ~ ' installed' if ('apache2' in ansible_facts.packages) else 'Apache not installed',
+           'details': {'installed': 'apache2' in ansible_facts.packages},
+           'recommendation': ''
+         }] }}"
+
+# --- Config Test ---
+
+- name: Audit Apache — Test configuration
+  ansible.builtin.shell: apachectl configtest 2>&1
+  register: audit_apache_test
+  changed_when: false
+  failed_when: false
+  when: "'apache2' in ansible_facts.packages"
+
+- name: Audit Apache — Set config test result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'apache_config_test',
+           'category': 'webserver',
+           'name': 'Apache Config Test',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_apache_test.rc == 0) else 'FAIL',
+           'message': 'Configuration is valid' if (audit_apache_test.rc == 0) else 'Configuration error',
+           'details': {'valid': audit_apache_test.rc == 0, 'output': audit_apache_test.stdout_lines[:3]},
+           'recommendation': '' if (audit_apache_test.rc == 0) else 'Fix Apache configuration errors'
+         }] }}"
+  when: "'apache2' in ansible_facts.packages"
+
+# --- Service Status ---
+
+- name: Audit Apache — Gather service facts
+  ansible.builtin.service_facts:
+  when: "'apache2' in ansible_facts.packages"
+
+- name: Audit Apache — Set service status result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'apache_service_status',
+           'category': 'webserver',
+           'name': 'Apache Service Status',
+           'severity': 'HIGH',
+           'status': 'PASS' if (ansible_facts.services['apache2.service']['state'] | default('stopped') == 'running') else 'FAIL',
+           'message': 'Apache is running' if (ansible_facts.services['apache2.service']['state'] | default('stopped') == 'running') else 'Apache is not running',
+           'details': {'state': ansible_facts.services['apache2.service']['state'] | default('not_found')},
+           'recommendation': '' if (ansible_facts.services['apache2.service']['state'] | default('stopped') == 'running') else 'Start apache2 service'
+         }] }}"
+  when: "'apache2' in ansible_facts.packages and 'apache2.service' in ansible_facts.services"
+
+# --- Loaded Modules ---
+
+- name: Audit Apache — Check loaded modules
+  ansible.builtin.shell: apachectl -M 2>/dev/null | tail -n +2 | wc -l
+  register: audit_apache_modules
+  changed_when: false
+  failed_when: false
+  when: "'apache2' in ansible_facts.packages"
+
+- name: Audit Apache — Set modules result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'apache_modules',
+           'category': 'webserver',
+           'name': 'Apache Modules',
+           'severity': 'LOW',
+           'status': 'PASS',
+           'message': audit_apache_modules.stdout ~ ' modules loaded',
+           'details': {'count': audit_apache_modules.stdout | int},
+           'recommendation': ''
+         }] }}"
+  when: "'apache2' in ansible_facts.packages and audit_apache_modules.stdout | length > 0"
+
+# --- Error Log ---
+
+- name: Audit Apache — Check error log
+  ansible.builtin.shell: |
+    log="/var/log/apache2/error.log"
+    if [ -f "$log" ]; then
+      errors=$(tail -100 "$log" 2>/dev/null | grep -ci "error\|crit\|alert\|emerg" || echo 0)
+      echo "$errors"
+    else
+      echo "0"
+    fi
+  register: audit_apache_errors
+  changed_when: false
+  failed_when: false
+  when: "'apache2' in ansible_facts.packages"
+
+- name: Audit Apache — Set error log result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'apache_error_log',
+           'category': 'webserver',
+           'name': 'Apache Error Log',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_apache_errors.stdout | int == 0) else 'WARN',
+           'message': 'No errors in last 100 lines' if (audit_apache_errors.stdout | int == 0) else audit_apache_errors.stdout ~ ' errors found',
+           'details': {'errors': audit_apache_errors.stdout | int},
+           'recommendation': '' if (audit_apache_errors.stdout | int == 0) else 'Check /var/log/apache2/error.log for details'
+         }] }}"
+  when: "'apache2' in ansible_facts.packages"

@@ -1,0 +1,29 @@
+---
+# Example Inventory for Audit Framework
+# Adjust host IPs and SSH credentials for your environment.
+
+all:
+  children:
+    webservers:
+      hosts:
+        web1:
+          ansible_host: 192.168.1.10
+          ansible_user: ubuntu
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+    dbservers:
+      hosts:
+        db1:
+          ansible_host: 192.168.1.30
+          ansible_user: ubuntu
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    audit_output_format: json        # json | markdown | yaml
+    audit_disk_warn_percent: 50
+    audit_disk_fail_percent: 80
+    audit_failed_logins_warn: 10
+    audit_failed_logins_fail: 50
+    audit_services_warn: 20
+    audit_services_fail: 40

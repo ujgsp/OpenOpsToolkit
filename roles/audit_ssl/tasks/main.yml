@@ -1,0 +1,116 @@
+---
+# Audit SSL — Certificate Expiry, Config
+
+- name: Initialize audit_results for ssl module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+# --- Certificate Expiry ---
+
+- name: Audit SSL — Find SSL certificates
+  ansible.builtin.find:
+    paths:
+      - /etc/letsencrypt/live
+      - /etc/ssl/certs
+      - /etc/nginx/ssl
+      - /etc/apache2/ssl
+    patterns: "*.pem,*.crt"
+    recurse: true
+  register: audit_ssl_certs
+  changed_when: false
+  failed_when: false
+
+- name: Audit SSL — Check certificate expiry
+  ansible.builtin.shell: |
+    cert="$1"
+    expiry=$(openssl x509 -enddate -noout -in "$cert" 2>/dev/null | cut -d= -f2)
+    if [ -n "$expiry" ]; then
+      expiry_epoch=$(date -d "$expiry" +%s 2>/dev/null || date -j -f "%b %d %T %Y %Z" "$expiry" +%s 2>/dev/null || echo 0)
+      now_epoch=$(date +%s)
+      days_left=$(( (expiry_epoch - now_epoch) / 86400 ))
+      echo "$days_left"
+    else
+      echo "-1"
+    fi
+  register: audit_ssl_expiry_results
+  changed_when: false
+  failed_when: false
+  loop: "{{ audit_ssl_certs.files | default([]) | map(attribute='path') | list }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Audit SSL — Set expiry result
+  ansible.builtin.set_fact:
+    _ssl_min_days: >-
+      {{ audit_ssl_expiry_results.results | default([])
+         | map(attribute='stdout') | select('match', '^[0-9]+$') | map('int') | min | default(-1) }}
+    _ssl_total_certs: "{{ audit_ssl_certs.files | default([]) | length }}"
+
+- name: Audit SSL — Set certificate expiry result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ssl_certificate_expiry',
+           'category': 'ssl',
+           'name': 'SSL Certificate Expiry',
+           'severity': 'CRITICAL',
+           'status': 'PASS' if (_ssl_min_days | int > audit_ssl_expiry_warn_days | default(30)) else ('WARN' if (_ssl_min_days | int > audit_ssl_expiry_fail_days | default(7)) else 'FAIL'),
+           'message': _ssl_total_certs ~ ' cert(s) found, nearest expiry in ' ~ _ssl_min_days ~ ' days',
+           'details': {
+             'total_certs': _ssl_total_certs | int,
+             'min_days_left': _ssl_min_days | int,
+             'threshold_warn': audit_ssl_expiry_warn_days | default(30),
+             'threshold_fail': audit_ssl_expiry_fail_days | default(7)
+           },
+           'recommendation': '' if (_ssl_min_days | int > audit_ssl_expiry_warn_days | default(30)) else 'Renew certificates before expiry'
+         }] }}"
+
+# --- Certbot Status ---
+
+- name: Audit SSL — Check certbot
+  ansible.builtin.shell: |
+    if command -v certbot >/dev/null 2>&1; then
+      echo "installed"
+    else
+      echo "not_installed"
+    fi
+  register: audit_ssl_certbot
+  changed_when: false
+  failed_when: false
+
+- name: Audit SSL — Set certbot result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ssl_certbot_installed',
+           'category': 'ssl',
+           'name': 'Certbot Installed',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_ssl_certbot.stdout == 'installed') else 'WARN',
+           'message': 'Certbot is installed' if (audit_ssl_certbot.stdout == 'installed') else 'Certbot is not installed',
+           'details': {'installed': audit_ssl_certbot.stdout == 'installed'},
+           'recommendation': '' if (audit_ssl_certbot.stdout == 'installed') else 'Install certbot for automated SSL management'
+         }] }}"
+
+# --- TLS Version ---
+
+- name: Audit SSL — Check TLS versions
+  ansible.builtin.shell: |
+    openssl s_client -connect localhost:443 -brief 2>&1 | grep "Protocol" | awk '{print $2}' || echo "unknown"
+  register: audit_ssl_tls_version
+  changed_when: false
+  failed_when: false
+
+- name: Audit SSL — Set TLS version result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ssl_tls_version',
+           'category': 'ssl',
+           'name': 'TLS Version',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_ssl_tls_version.stdout is search('TLSv1\\.[23]')) else ('WARN' if (audit_ssl_tls_version.stdout != 'unknown') else 'INFO'),
+           'message': 'TLS version: ' ~ audit_ssl_tls_version.stdout if (audit_ssl_tls_version.stdout != 'unknown') else 'Could not detect TLS version (no HTTPS endpoint?)',
+           'details': {'version': audit_ssl_tls_version.stdout},
+           'recommendation': '' if (audit_ssl_tls_version.stdout is search('TLSv1\\.[23]')) else 'Ensure TLS 1.2+ is configured'
+         }] }}"

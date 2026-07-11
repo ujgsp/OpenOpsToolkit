@@ -1,0 +1,5 @@
+---
+# Audit SSL — Default Thresholds
+
+audit_ssl_expiry_warn_days: 30
+audit_ssl_expiry_fail_days: 7

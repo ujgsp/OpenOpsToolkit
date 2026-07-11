@@ -1,0 +1,68 @@
+---
+# Audit OpenLiteSpeed — Config, Status
+
+- name: Initialize audit_results for openlitespeed module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+- name: Audit OpenLiteSpeed — Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+# --- Installation ---
+
+- name: Audit OpenLiteSpeed — Set installation result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ols_installed',
+           'category': 'webserver',
+           'name': 'OpenLiteSpeed Installed',
+           'severity': 'INFO',
+           'status': 'PASS' if ('openlitespeed' in ansible_facts.packages) else 'WARN',
+           'message': 'OpenLiteSpeed ' ~ (ansible_facts.packages['openlitespeed'] | first).version ~ ' installed' if ('openlitespeed' in ansible_facts.packages) else 'OpenLiteSpeed not installed',
+           'details': {'installed': 'openlitespeed' in ansible_facts.packages},
+           'recommendation': ''
+         }] }}"
+
+# --- Service Status ---
+
+- name: Audit OpenLiteSpeed — Gather service facts
+  ansible.builtin.service_facts:
+  when: "'openlitespeed' in ansible_facts.packages"
+
+- name: Audit OpenLiteSpeed — Set service status result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ols_service_status',
+           'category': 'webserver',
+           'name': 'OpenLiteSpeed Service Status',
+           'severity': 'HIGH',
+           'status': 'PASS' if (ansible_facts.services['lsws.service']['state'] | default('stopped') == 'running') else 'FAIL',
+           'message': 'OpenLiteSpeed is running' if (ansible_facts.services['lsws.service']['state'] | default('stopped') == 'running') else 'OpenLiteSpeed is not running',
+           'details': {'state': ansible_facts.services['lsws.service']['state'] | default('not_found')},
+           'recommendation': '' if (ansible_facts.services['lsws.service']['state'] | default('stopped') == 'running') else 'Start lsws service'
+         }] }}"
+  when: "'openlitespeed' in ansible_facts.packages and 'lsws.service' in ansible_facts.services"
+
+# --- Config Check ---
+
+- name: Audit OpenLiteSpeed — Check config file
+  ansible.builtin.stat:
+    path: /usr/local/lsws/conf/httpd.conf
+  register: audit_ols_config
+
+- name: Audit OpenLiteSpeed — Set config check result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ols_config_exists',
+           'category': 'webserver',
+           'name': 'OpenLiteSpeed Config',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_ols_config.stat.exists) else 'WARN',
+           'message': 'Config file exists' if (audit_ols_config.stat.exists) else 'Config file not found',
+           'details': {'path': '/usr/local/lsws/conf/httpd.conf'},
+           'recommendation': '' if (audit_ols_config.stat.exists) else 'Verify OpenLiteSpeed installation'
+         }] }}"

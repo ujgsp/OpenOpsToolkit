@@ -1,0 +1,22 @@
+---
+# Audit Core — Default Configuration
+
+# Output format: json, yaml, markdown
+audit_output_format: json
+
+# Output directory (relative to playbook dir)
+audit_output_dir: reports
+
+# Severity levels
+audit_severities:
+  - INFO
+  - LOW
+  - MEDIUM
+  - HIGH
+  - CRITICAL
+
+# Status values
+audit_statuses:
+  - PASS
+  - WARN
+  - FAIL

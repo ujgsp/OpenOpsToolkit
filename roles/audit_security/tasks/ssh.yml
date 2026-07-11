@@ -1,0 +1,68 @@
+---
+# Audit Security — SSH Checks
+
+- name: Read sshd_config (main)
+  ansible.builtin.shell: |
+    sshd_main="/etc/ssh/sshd_config"
+    sshd_includes=$(grep "^Include" "$sshd_main" 2>/dev/null | awk '{print $2}' | sed 's|%d|/etc/ssh/sshd_config.d|')
+    for conf in $sshd_includes; do
+      [ -f "$conf" ] && cat "$conf"
+    done
+    cat "$sshd_main" 2>/dev/null
+  register: audit_sshd_config
+  changed_when: false
+  failed_when: false
+
+- name: Extract SSH root login setting
+  ansible.builtin.set_fact:
+    _ssh_root_login: "{{ audit_sshd_config.stdout | regex_search('^PermitRootLogin\\s+(\\S+)', '\\1') | first | default('prohibit-password') }}"
+
+- name: Audit Security — SSH Root Login
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ssh_root_login',
+           'category': 'security',
+           'name': 'SSH Root Login',
+           'severity': 'HIGH',
+           'status': 'PASS' if (_ssh_root_login == 'no') else 'FAIL',
+           'message': 'Root login is disabled' if (_ssh_root_login == 'no') else 'Root login is allowed (' ~ _ssh_root_login ~ ')',
+           'details': {'current_value': _ssh_root_login, 'expected_value': 'no'},
+           'recommendation': '' if (_ssh_root_login == 'no') else 'Set PermitRootLogin to "no" in /etc/ssh/sshd_config'
+         }] }}"
+
+- name: Extract SSH password auth setting
+  ansible.builtin.set_fact:
+    _ssh_pass_auth: "{{ audit_sshd_config.stdout | regex_search('^PasswordAuthentication\\s+(\\S+)', '\\1') | first | default('yes') }}"
+
+- name: Audit Security — SSH Password Auth
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ssh_password_auth',
+           'category': 'security',
+           'name': 'SSH Password Authentication',
+           'severity': 'HIGH',
+           'status': 'PASS' if (_ssh_pass_auth == 'no') else 'FAIL',
+           'message': 'Password auth disabled (key-only)' if (_ssh_pass_auth == 'no') else 'Password authentication is enabled',
+           'details': {'current_value': _ssh_pass_auth, 'expected_value': 'no'},
+           'recommendation': '' if (_ssh_pass_auth == 'no') else 'Set PasswordAuthentication to "no" and use key-based auth'
+         }] }}"
+
+- name: Extract SSH port setting
+  ansible.builtin.set_fact:
+    _ssh_port: "{{ audit_sshd_config.stdout | regex_search('^Port\\s+(\\S+)', '\\1') | first | default('22') }}"
+
+- name: Audit Security — SSH Port
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'ssh_port',
+           'category': 'security',
+           'name': 'SSH Port',
+           'severity': 'LOW',
+           'status': 'PASS' if (_ssh_port != '22') else 'WARN',
+           'message': 'Using non-default port ' ~ _ssh_port if (_ssh_port != '22') else 'Using default port 22',
+           'details': {'current_value': _ssh_port, 'expected_value': 'non-22'},
+           'recommendation': '' if (_ssh_port != '22') else 'Consider changing to a non-standard port'
+         }] }}"
