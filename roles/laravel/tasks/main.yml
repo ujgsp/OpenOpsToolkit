@@ -293,12 +293,12 @@
   debug:
     msg: |
       Laravel application deployed successfully!
-      
+
       Application: {{ app_name }}
       URL: http{% if ssl_enabled %}s{% endif %}://{{ domain }}
       Directory: /var/www/{{ app_name }}
       Database: {{ db_name }}
-      
+
       Services:
       - Nginx: systemctl status nginx
       - PHP-FPM: systemctl status php{{ php_version }}-fpm
@@ -309,7 +309,7 @@
       {% if queue_worker_enabled %}
       - Queue Worker: supervisorctl status {{ app_name }}-queue*
       {% endif %}
-      
+
       Logs:
       - Nginx: /var/log/nginx/
       - PHP-FPM: /var/log/php{{ php_version }}-fpm.log

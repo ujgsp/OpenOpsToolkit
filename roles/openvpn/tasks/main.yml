@@ -175,15 +175,15 @@
   debug:
     msg: |
       OpenVPN deployed successfully!
-      
+
       Server: {{ openvpn_server_ip }}
       Port: {{ openvpn_port }}
       Protocol: {{ openvpn_protocol }}
       Network: {{ openvpn_network }}
-      
+
       Clients: {{ openvpn_clients | join(', ') }}
       Client configs: {{ openvpn_clients_dir }}/
-      
+
       Start service:
       - systemctl start openvpn
       - systemctl status openvpn

@@ -40,7 +40,7 @@ supervisor_programs:
     autorestart: true
     redirect_stderr: true
     stdout_logfile: /var/log/supervisor/laravel-queue.log
-  
+
   - name: laravel-scheduler
     command: "while true; do php /var/www/{{ app_name }}/artisan schedule:run --verbose --no-interaction & sleep 60; done"
     numprocs: 1

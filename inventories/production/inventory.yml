@@ -11,7 +11,7 @@ all:
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_rsa
           server_role: loadbalancer
-    
+
     # Web Servers
     webservers:
       hosts:
@@ -22,7 +22,7 @@ all:
           server_role: webserver
           nginx_worker_processes: 4
           nginx_worker_connections: 1024
-        
+
         web2:
           ansible_host: 192.168.1.11
           ansible_user: ubuntu
@@ -30,7 +30,7 @@ all:
           server_role: webserver
           nginx_worker_processes: 4
           nginx_worker_connections: 1024
-    
+
     # Application Servers
     appservers:
       hosts:
@@ -43,7 +43,7 @@ all:
           php_fpm_start_servers: 5
           php_fpm_min_spare_servers: 5
           php_fpm_max_spare_servers: 35
-        
+
         app2:
           ansible_host: 192.168.1.21
           ansible_user: ubuntu
@@ -53,7 +53,7 @@ all:
           php_fpm_start_servers: 5
           php_fpm_min_spare_servers: 5
           php_fpm_max_spare_servers: 35
-    
+
     # Database Servers
     dbservers:
       hosts:
@@ -64,7 +64,7 @@ all:
           server_role: database
           mysql_max_connections: 200
           mysql_innodb_buffer_pool_size: 1G
-        
+
         db2:
           ansible_host: 192.168.1.31
           ansible_user: ubuntu
@@ -73,7 +73,7 @@ all:
           mysql_max_connections: 200
           mysql_innodb_buffer_pool_size: 1G
           mysql_replication_slave: true
-    
+
     # Monitoring Servers
     monitoring:
       hosts:
@@ -82,7 +82,7 @@ all:
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_rsa
           server_role: monitoring
-    
+
     # Cache Servers
     cache:
       hosts:
@@ -93,7 +93,7 @@ all:
           server_role: cache
           redis_maxmemory: 256mb
           redis_maxmemory_policy: allkeys-lru
-    
+
     # Queue Servers
     queue:
       hosts:
@@ -102,7 +102,7 @@ all:
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_rsa
           server_role: queue
-    
+
     # All servers
     all_servers:
       children:
@@ -113,31 +113,31 @@ all:
         monitoring:
         cache:
         queue:
-  
+
   vars:
     # Common variables
     ansible_python_interpreter: /usr/bin/python3
-    
+
     # Application
     app_name: myapp
     app_env: production
     app_url: https://example.com
     app_domain: example.com
-    
+
     # Timezone
     timezone: Asia/Jakarta
-    
+
     # SSL
     ssl_enabled: true
     ssl_email: admin@example.com
-    
+
     # Backup
     backup_enabled: true
     backup_schedule: "0 2 * * *"
     backup_retention_days: 7
-    
+
     # Monitoring
     monitoring_enabled: true
-    
+
     # Firewall
     firewall_enabled: true

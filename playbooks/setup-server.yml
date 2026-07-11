@@ -81,11 +81,11 @@
         msg: |
           ========================================
           ✅ Server Setup Completed!
-          
+
           Server: {{ ansible_hostname }}
           IP: {{ ansible_default_ipv4.address | default('N/A') }}
           Domain: {{ server_domain | default('N/A') }}
-          
+
           Services:
           - SSH: Port {{ ssh_port }}
           - UFW: Active
@@ -99,7 +99,7 @@
           {% if backup_enabled | bool %}
           - Backup: Daily at {{ backup_hour }}:{{ backup_minute }}
           {% endif %}
-          
+
           Next Steps:
           1. Verify SSH access: ssh -p {{ ssh_port }} root@{{ server_domain | default(ansible_default_ipv4.address) }}
           2. Check services: systemctl status nginx ufw fail2ban

@@ -191,11 +191,11 @@
   debug:
     msg: |
       WordPress deployed successfully!
-      
+
       Application: {{ app_name }}
       URL: http{% if ssl_enabled %}s{% endif %}://{{ domain }}
       Directory: /var/www/{{ app_name }}
       Database: {{ db_name }}
-      
+
       Admin URL: http{% if ssl_enabled %}s{% endif %}://{{ domain }}/wp-admin
       Admin User: {{ wp_admin_user }}

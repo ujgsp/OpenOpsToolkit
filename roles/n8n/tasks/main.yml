@@ -146,15 +146,15 @@
   debug:
     msg: |
       n8n deployed successfully!
-      
+
       URL: http{% if n8n_ssl_enabled %}s{% endif %}://{{ n8n_domain }}
       Username: {{ n8n_basic_auth_user }}
       Data Directory: {{ n8n_data_dir }}
-      
+
       Docker Status:
       - Container: docker ps | grep n8n
       - Logs: docker logs n8n
-      
+
       Management:
       - Start: cd {{ n8n_data_dir }} && docker compose up -d
       - Stop: cd {{ n8n_data_dir }} && docker compose down

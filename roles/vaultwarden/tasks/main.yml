@@ -146,16 +146,16 @@
   debug:
     msg: |
       Vaultwarden deployed successfully!
-      
+
       URL: http{% if vaultwarden_ssl_enabled %}s{% endif %}://{{ vaultwarden_domain }}
       Admin Panel: http{% if vaultwarden_ssl_enabled %}s{% endif %}://{{ vaultwarden_domain }}/admin
       Admin Token: {{ vaultwarden_admin_token }}
       Data Directory: {{ vaultwarden_data_dir }}
-      
+
       Docker Status:
       - Container: docker ps | grep vaultwarden
       - Logs: docker logs vaultwarden
-      
+
       Management:
       - Start: cd {{ vaultwarden_data_dir }} && docker compose up -d
       - Stop: cd {{ vaultwarden_data_dir }} && docker compose down

@@ -96,11 +96,11 @@
   debug:
     msg: |
       Docker installed successfully!
-      
+
       Version: {{ docker_version }}
       Compose: {{ docker_compose_version }}
       Users: {{ docker_users | join(', ') }}
-      
+
       Usage:
       - docker --version
       - docker compose version

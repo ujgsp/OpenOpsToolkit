@@ -92,24 +92,24 @@
         msg: |
           ========================================
           ✅ Laravel Deployment Completed!
-          
+
           Application: {{ app_name }}
           URL: http{% if ssl_enabled %}s{% endif %}://{{ domain }}
           Directory: /var/www/{{ app_name }}
-          
+
           Status:
           - Nginx: {{ 'Running' if nginx_status.status.ActiveState == 'active' else 'Error' }}
           - PHP-FPM: {{ 'Running' if php_status.status.ActiveState == 'active' else 'Error' }}
           - Nginx Config: {{ 'OK' if nginx_test.rc == 0 else 'Error' }}
           - Health Check: {{ 'OK' if health_check.status == 200 else 'Failed' }}
-          
+
           {% if scheduler_enabled %}
           Scheduler: Active (runs every minute)
           {% endif %}
           {% if queue_worker_enabled %}
           Queue Worker: Active (Supervisor managed)
           {% endif %}
-          
+
           Logs:
           - Laravel: /var/www/{{ app_name }}/storage/logs/laravel.log
           - Nginx: /var/log/nginx/{{ domain }}-error.log
