@@ -11,6 +11,7 @@ Menjadi toolkit DevOps open source utama untuk developer Indonesia, menyediakan 
 **Release Date**: June 2026
 
 #### Phase 1: MVP (v0.1.0) ✅
+
 - [x] Laravel (Ubuntu 22.04 + Nginx + PHP-FPM + MySQL)
 - [x] WordPress (Ubuntu 22.04 + Nginx + PHP-FPM + MySQL)
 - [x] n8n (Docker-based deployment)
@@ -19,6 +20,7 @@ Menjadi toolkit DevOps open source utama untuk developer Indonesia, menyediakan 
 - [x] Vaultwarden (Password manager)
 
 #### Phase 2: Monitoring (v0.2.0) ✅
+
 - [x] Uptime Kuma setup automation
 - [x] Grafana dashboard templates
 - [x] Prometheus + Node Exporter setup
@@ -26,18 +28,21 @@ Menjadi toolkit DevOps open source utama untuk developer Indonesia, menyediakan 
 - [x] Notification integration (Telegram, Email)
 
 #### Phase 3: AI Ops (v0.3.0) ✅
+
 - [x] AI Incident Summary (nginx/apache/laravel logs)
 - [x] AI GitHub Issue Summary
 - [x] Log analysis prompts
 - [x] Priority classification
 
 #### Phase 4: Multi-Server (v0.4.0) ✅
+
 - [x] Multi-server architecture design
 - [x] Centralized inventory template
 - [x] Server group management (7 groups)
 - [x] Deployment orchestration playbooks
 
 #### Phase 5: Production Ready (v0.4.0) ✅
+
 - [x] Complete all documentation
 - [x] CI/CD pipeline (GitHub Actions)
 - [x] Code quality checks

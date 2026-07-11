@@ -90,18 +90,19 @@ all:
           ansible_host: 192.168.1.10
         web2:
           ansible_host: 192.168.1.11
-    
+
     appservers:
       hosts:
         app1:
           ansible_host: 192.168.1.20
         app2:
           ansible_host: 192.168.1.21
-    
+
     dbservers:
       hosts:
         db1:
           ansible_host: 192.168.1.30
+
 ```
 
 ### 3. Group Variables
