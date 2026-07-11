@@ -1,0 +1,26 @@
+# Audit Report
+
+**Generated**: {{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}
+**Hosts**: {{ groups['all'] | length }}
+
+## Summary
+
+| Status | Count |
+|--------|-------|
+| PASS | {{ audit_results | selectattr('status', 'equalto', 'PASS') | list | length }} |
+| WARN | {{ audit_results | selectattr('status', 'equalto', 'WARN') | list | length }} |
+| FAIL | {{ audit_results | selectattr('status', 'equalto', 'FAIL') | list | length }} |
+| **Total** | **{{ audit_results | length }}** |
+
+## Details
+
+{% for host in groups['all'] | sort %}
+### {{ host }}
+
+| Check | Status | Severity | Message |
+|-------|--------|----------|---------|
+{% for r in audit_results | selectattr('hostname', 'equalto', host) | sort(attribute='id') %}
+| {{ r.name }} | {{ r.status }} | {{ r.severity }} | {{ r.message }} |
+{% endfor %}
+
+{% endfor %}

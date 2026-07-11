@@ -1,0 +1,90 @@
+---
+# Audit OS — System Information & OS Checks
+
+- name: Initialize audit_results for OS module
+  ansible.builtin.set_fact:
+    audit_results: "{{ audit_results | default([]) }}"
+
+# --- System Information ---
+
+- name: Audit OS — System Info
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'os_system_info',
+           'category': 'os',
+           'name': 'System Information',
+           'severity': 'INFO',
+           'status': 'PASS',
+           'message': ansible_distribution ~ ' ' ~ ansible_distribution_version ~ ' | Kernel: ' ~ ansible_kernel ~ ' | Uptime: ' ~ ansible_uptime_seconds ~ 's',
+           'details': {
+             'distribution': ansible_distribution,
+             'distribution_version': ansible_distribution_version,
+             'kernel': ansible_kernel,
+             'hostname': ansible_hostname,
+             'uptime_seconds': ansible_uptime_seconds,
+             'total_mem_mb': ansible_memtotal_mb,
+             'total_disk_bytes': ansible_mounts | default([]) | selectattr('mount', 'equalto', '/') | map(attribute='size_total') | first | default(0)
+           },
+           'recommendation': ''
+         }] }}"
+
+# --- Package Updates ---
+
+- name: Audit OS — Check available updates
+  ansible.builtin.shell: apt-get -s upgrade 2>/dev/null | grep -P '^\d+ upgraded' | cut -d' ' -f1 || echo "0"
+  register: audit_os_updates
+  changed_when: false
+  failed_when: false
+  when: ansible_os_family == "Debian"
+
+- name: Audit OS — Set updates result (Debian/Ubuntu)
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'os_updates_available',
+           'category': 'os',
+           'name': 'System Updates',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_os_updates.stdout | default('0') | int == 0) else 'FAIL',
+           'message': 'All packages up to date' if (audit_os_updates.stdout | default('0') | int == 0) else audit_os_updates.stdout ~ ' updates available',
+           'details': {'available_updates': audit_os_updates.stdout | default('0') | int},
+           'recommendation': '' if (audit_os_updates.stdout | default('0') | int == 0) else 'Run apt-get upgrade to apply pending updates'
+         }] }}"
+  when: ansible_os_family == "Debian"
+
+- name: Audit OS — Set updates result (unsupported distro)
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'os_updates_available',
+           'category': 'os',
+           'name': 'System Updates',
+           'severity': 'HIGH',
+           'status': 'WARN',
+           'message': 'Update check not supported for ' ~ ansible_os_family,
+           'details': {},
+           'recommendation': 'Manual update check required'
+         }] }}"
+  when: ansible_os_family != "Debian"
+
+# --- Unattended Upgrades ---
+
+- name: Audit OS — Check unattended-upgrades
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Audit OS — Set unattended-upgrades result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'os_unattended_upgrades',
+           'category': 'os',
+           'name': 'Unattended Upgrades',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if ('unattended-upgrades' in ansible_facts.packages) else 'FAIL',
+           'message': 'Automatic security updates configured' if ('unattended-upgrades' in ansible_facts.packages) else 'Automatic security updates not configured',
+           'details': {'installed': 'unattended-upgrades' in ansible_facts.packages},
+           'recommendation': '' if ('unattended-upgrades' in ansible_facts.packages) else 'Install unattended-upgrades for automatic security patches'
+         }] }}"
+  when: ansible_os_family == "Debian"

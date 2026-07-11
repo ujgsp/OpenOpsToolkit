@@ -81,6 +81,10 @@ vault_*
 
 # Production inventory (contains real IPs + credentials)
 inventories/production/
+inventories/test/
 
 # Pi Agent (local-only)
 .pi/
+
+# Audit reports
+reports/

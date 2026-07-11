@@ -1,0 +1,45 @@
+---
+# Audit Security — SUID File Detection
+
+- name: Audit Security — Find SUID files
+  ansible.builtin.find:
+    paths: /
+    patterns: "*"
+    file_type: file
+    recurse: false
+    contains: ".*"
+    mode: "4000"
+  register: audit_suid_files
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Audit Security — Filter standard SUID binaries
+  ansible.builtin.set_fact:
+    _suid_standard_paths: >-
+      /usr/bin/su|/usr/bin/sudo|/usr/bin/passwd|/usr/bin/chsh|/usr/bin/newgrp|
+      /usr/bin/chfn|/usr/bin/gpasswd|/usr/bin/mount|/usr/bin/umount|
+      /usr/lib/openssh/ssh-keysign|/usr/lib/dbus-1.0/dbus-daemon-launch-helper|
+      /usr/lib/policykit-1/polkit-agent-helper-1|/usr/lib/polkit-1/polkit-agent-helper-1
+
+- name: Audit Security — Count non-standard SUID files
+  ansible.builtin.set_fact:
+    _suid_count: >-
+      {{ audit_suid_files.files | default([])
+         | map(attribute='path')
+         | reject('regex', _suid_standard_paths)
+         | list | length }}
+
+- name: Audit Security — Set SUID result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'suid_files',
+           'category': 'security',
+           'name': 'SUID Files',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (_suid_count | int == 0) else 'WARN',
+           'message': 'No non-standard SUID files found' if (_suid_count | int == 0) else _suid_count ~ ' non-standard SUID files detected',
+           'details': {'count': _suid_count | int, 'standard_paths': _suid_standard_paths},
+           'recommendation': '' if (_suid_count | int == 0) else 'Review non-standard SUID files for legitimacy'
+         }] }}"

@@ -1,0 +1,27 @@
+---
+# Audit Security — Sudo Logging
+
+- name: Audit Security — Check sudo logging
+  ansible.builtin.shell: |
+    if grep -qE "^Defaults.*logfile" /etc/sudoers 2>/dev/null; then
+      echo "enabled"
+    else
+      echo "disabled"
+    fi
+  register: audit_sudo_log
+  changed_when: false
+  failed_when: false
+
+- name: Audit Security — Set sudo logging result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'sudo_logging',
+           'category': 'security',
+           'name': 'Sudo Logging',
+           'severity': 'MEDIUM',
+           'status': 'PASS' if (audit_sudo_log.stdout == 'enabled') else 'FAIL',
+           'message': 'Sudo commands are logged' if (audit_sudo_log.stdout == 'enabled') else 'Sudo commands are not logged',
+           'details': {'enabled': audit_sudo_log.stdout == 'enabled'},
+           'recommendation': '' if (audit_sudo_log.stdout == 'enabled') else 'Add Defaults logfile="/var/log/sudo.log" to /etc/sudoers'
+         }] }}"

@@ -1,0 +1,31 @@
+---
+# Audit Security — Failed Login Attempts
+
+- name: Audit Security — Count failed logins
+  ansible.builtin.shell: |
+    count=0
+    if [ -f /var/log/auth.log ]; then
+      count=$(grep -c "Failed password" /var/log/auth.log 2>/dev/null || echo 0)
+    fi
+    echo "$count"
+  register: audit_failed_logins
+  changed_when: false
+  failed_when: false
+
+- name: Audit Security — Set failed logins result
+  ansible.builtin.set_fact:
+    audit_results: >-
+      {{ audit_results + [{
+           'id': 'failed_logins',
+           'category': 'security',
+           'name': 'Failed Login Attempts',
+           'severity': 'HIGH',
+           'status': 'PASS' if (audit_failed_logins.stdout | int < audit_failed_logins_warn | default(10)) else ('WARN' if (audit_failed_logins.stdout | int < audit_failed_logins_fail | default(50)) else 'FAIL'),
+           'message': audit_failed_logins.stdout ~ ' failed login attempts detected',
+           'details': {
+             'count': audit_failed_logins.stdout | int,
+             'threshold_warn': audit_failed_logins_warn | default(10),
+             'threshold_fail': audit_failed_logins_fail | default(50)
+           },
+           'recommendation': '' if (audit_failed_logins.stdout | int < audit_failed_logins_warn | default(10)) else 'Investigate possible brute force attack'
+         }] }}"
